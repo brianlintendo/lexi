@@ -640,6 +640,7 @@ body {
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 2px 8px rgba(122,84,255,0.08);
   font-size: 20px;
+  margin-left: 16px;
 }
 
 .search-bar {
@@ -715,12 +716,13 @@ body {
   background: #7A54FF;
   color: #fff;
   border-radius: 50%;
-  width: 56px; height: 56px;
-  display: flex; align-items: center; justify-content: center;
+  width: 80px; height: 80px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
   font-size: 28px;
   margin: 0 16px;
   box-shadow: 0 2px 8px rgba(122,84,255,0.12);
   border: none;
+  gap: 4px;
 }
 
 .tab-bar {
@@ -749,4 +751,31 @@ body {
 .tab.active {
   color: #7A54FF;
   font-weight: 600;
+}
+
+.journal-header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 16px 0 16px;
+  background: transparent;
+}
+
+.weekdays-row-centered {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.action-btn-icon {
+  background: #fff;
+  border-radius: 50%;
+  border: none;
+  width: 52px; height: 52px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 15px;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(122,84,255,0.08);
+  color: #292D32;
 } 

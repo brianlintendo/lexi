@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/global.css';
+import { ReactComponent as MicIcon } from '../assets/icons/mic.svg';
+import { ReactComponent as SendIcon } from '../assets/icons/send.svg';
+import { ReactComponent as ImageIcon } from '../assets/icons/image.svg';
+import { ReactComponent as JournalIcon } from '../assets/icons/journal.svg';
+import { ReactComponent as SavedIcon } from '../assets/icons/saved.svg';
+import { ReactComponent as AccountIcon } from '../assets/icons/account.svg';
+import { ReactComponent as FranceFlag } from '../assets/icons/france-flag.svg';
 
 const weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
@@ -81,8 +88,8 @@ export default function JournalPage() {
   return (
     <div className="journal-bg">
       {/* Top Section */}
-      <div className="journal-header" style={{ position: 'relative' }}>
-        <div className="weekdays-row">
+      <div className="journal-header-flex">
+        <div className="weekdays-row-centered">
           {weekDates.map((date, i) => {
             const key = getDateKey(date);
             const isActive = key === getDateKey(selectedDate);
@@ -137,8 +144,8 @@ export default function JournalPage() {
             );
           })}
         </div>
-        <button className="lang-btn" aria-label="Change language" style={{ position: 'absolute', right: 0, top: 0 }}>
-          <span role="img" aria-label="French flag">🇫🇷</span>
+        <button className="lang-btn" aria-label="Change language">
+          <FranceFlag style={{ width: 24, height: 24 }} />
         </button>
       </div>
 
@@ -156,7 +163,7 @@ export default function JournalPage() {
       <div className="journal-main">
         <div className="date-heading">{formatDateHeading(selectedDate)}</div>
         <div className="prompt-bubble">
-          Bonjour ! Prêt(e) à écrire en français ? 😊<br />
+          Bonjour ! Prêt(e) à écrire en français ?<br />
           Comment tu te sens aujourd'hui ?
         </div>
         <textarea
@@ -169,16 +176,34 @@ export default function JournalPage() {
 
       {/* Bottom Actions */}
       <div className="journal-actions">
-        <div className="action-btn"><span role="img" aria-label="mic">🎤</span><div>Speak</div></div>
-        <button className="action-btn send-btn"><span role="img" aria-label="send">⬆️</span><div>Send</div></button>
-        <div className="action-btn"><span role="img" aria-label="image">🖼️</span><div>Image</div></div>
+        <button className="action-btn action-btn-icon" style={{ width: 52, height: 52 }}>
+          <MicIcon style={{ width: 28, height: 28 }} />
+          <div>Speak</div>
+        </button>
+        <button className="action-btn send-btn" style={{ width: 80, height: 80 }}>
+          <SendIcon style={{ width: 36, height: 36 }} />
+          <div>Send</div>
+        </button>
+        <button className="action-btn action-btn-icon" style={{ width: 52, height: 52 }}>
+          <ImageIcon style={{ width: 28, height: 28 }} />
+          <div>Image</div>
+        </button>
       </div>
 
       {/* Tab Bar */}
       <div className="tab-bar">
-        <div className="tab active"><span role="img" aria-label="journal">🖊️</span><div>Journal</div></div>
-        <div className="tab"><span role="img" aria-label="saved">⭐</span><div>Saved</div></div>
-        <div className="tab"><span role="img" aria-label="account">👤</span><div>Account</div></div>
+        <div className="tab active">
+          <JournalIcon style={{ width: 24, height: 24 }} />
+          <div>Journal</div>
+        </div>
+        <div className="tab">
+          <SavedIcon style={{ width: 24, height: 24 }} />
+          <div>Saved</div>
+        </div>
+        <div className="tab">
+          <AccountIcon style={{ width: 24, height: 24 }} />
+          <div>Account</div>
+        </div>
       </div>
     </div>
   );
