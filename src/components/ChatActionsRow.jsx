@@ -4,15 +4,19 @@ import sendIcon from '../assets/icons/send.svg';
 import imageIcon from '../assets/icons/image.svg';
 
 export default function ChatActionsRow({ onSpeak, onSend, onImage, sendDisabled }) {
+  // Calculate offset to center smaller buttons with the large send button
+  const sendBtnSize = 80;
+  const sideBtnSize = 52;
+  const offset = (sendBtnSize - sideBtnSize) / 2;
   return (
-    <div className="chat-actions-row" style={{ display: 'flex', justifyContent: 'center', gap: 36, padding: '1.5rem 0' }}>
+    <div className="chat-actions-row" style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 36, padding: '1.5rem 0' }}>
       {/* Speak Button */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: offset }}>
         <button
           className="action-btn action-btn-icon"
           style={{
-            width: 52,
-            height: 52,
+            width: sideBtnSize,
+            height: sideBtnSize,
             borderRadius: '50%',
             background: '#F4F4F6',
             boxShadow: '0 2px 8px 0 rgba(122,84,255,0.10)',
@@ -35,8 +39,8 @@ export default function ChatActionsRow({ onSpeak, onSend, onImage, sendDisabled 
         <button
           className="send-btn"
           style={{
-            width: 80,
-            height: 80,
+            width: sendBtnSize,
+            height: sendBtnSize,
             borderRadius: '50%',
             background: 'linear-gradient(135deg, #7A54FF 0%, #00C853 100%)',
             boxShadow: '0 4px 16px 0 rgba(122,84,255,0.18)',
@@ -58,12 +62,12 @@ export default function ChatActionsRow({ onSpeak, onSend, onImage, sendDisabled 
         <span style={{ fontSize: 13, color: '#A0A0A0', marginTop: 2 }}>Send</span>
       </div>
       {/* Image Button */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: offset }}>
         <button
           className="action-btn action-btn-icon"
           style={{
-            width: 52,
-            height: 52,
+            width: sideBtnSize,
+            height: sideBtnSize,
             borderRadius: '50%',
             background: '#F4F4F6',
             boxShadow: '0 2px 8px 0 rgba(122,84,255,0.10)',
