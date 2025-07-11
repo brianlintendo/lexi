@@ -128,7 +128,7 @@ export default function JournalPage() {
     <div className="journal-bg">
       {/* Top Section */}
       <div className="journal-header-flex">
-        <div className="weekdays-row-centered">
+        <div className="weekdays-row-centered" style={{ display: 'flex', justifyContent: 'flex-start', gap: 20 }}>
           {weekDates.map((date, i) => {
             const key = getDateKey(date);
             const isActive = key === getDateKey(selectedDate);
