@@ -3,6 +3,7 @@ import '../styles/global.css';
 import { getChatCompletion } from '../openai';
 import ChatBubble from '../components/ChatBubble';
 import ChatActionsRow from '../components/ChatActionsRow';
+import ChatHeader from '../components/ChatHeader';
 
 const initialMessages = [
   { sender: 'ai', text: 'Bonjour ! Je suis Lexi. Pose-moi une question ou commence à discuter en français !', timestamp: new Date() }
@@ -35,11 +36,14 @@ export default function ChatPage() {
     }
   };
 
+  // Calculate word count from all user messages and current input
+  const wordLimit = 200;
+  const userWords = messages.filter(m => m.sender === 'user').map(m => m.text).join(' ') + ' ' + input;
+  const wordCount = userWords.trim().split(/\s+/).filter(Boolean).length;
+
   return (
     <div className="chat-bg" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <header className="chat-header" style={{ padding: '1rem', borderBottom: '1px solid #eee', textAlign: 'center', fontWeight: 'bold' }}>
-        Lexi Chat
-      </header>
+      <ChatHeader wordCount={wordCount} wordLimit={wordLimit} />
       <div className="chat-messages" style={{ flex: 1, overflowY: 'auto', padding: '1rem', background: '#fafaff' }}>
         {messages.map((msg, idx) => (
           <ChatBubble key={idx} sender={msg.sender} text={msg.text} />
