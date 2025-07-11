@@ -1,6 +1,7 @@
 import React from 'react';
 
 export default function ChatBubble({ sender, text, loading }) {
+  const fontFamily = sender === 'ai' ? 'Noto Serif, serif' : 'Albert Sans, sans-serif';
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: sender === 'user' ? 'flex-end' : 'flex-start', marginBottom: 16 }}>
@@ -13,7 +14,8 @@ export default function ChatBubble({ sender, text, loading }) {
           padding: '12px 20px',
           maxWidth: '75%',
           fontSize: 16,
-          opacity: 0.7
+          opacity: 0.7,
+          fontFamily
         }}>
           Lexi is typing...
         </div>
@@ -35,6 +37,7 @@ export default function ChatBubble({ sender, text, loading }) {
         boxShadow: sender === 'ai' ? '0 2px 8px rgba(122,84,255,0.08)' : 'none',
         position: 'relative',
         wordBreak: 'break-word',
+        fontFamily
       }}>
         {text}
       </div>
