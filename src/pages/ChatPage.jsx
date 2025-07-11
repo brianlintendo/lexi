@@ -46,6 +46,20 @@ export default function ChatPage() {
         ))}
         {loading && <ChatBubble sender="ai" loading />}
         {input && !loading && <ChatBubble sender="user" text={input} />}
+        {!loading && (!input || input === '') && messages.length > 0 && messages[messages.length-1].sender === 'ai' && (
+          <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 16 }}>
+            <span style={{
+              display: 'inline-block',
+              width: 2,
+              height: 28,
+              background: '#7A54FF',
+              marginLeft: 12,
+              animation: 'blink-cursor 1s steps(2, start) infinite',
+              borderRadius: 1
+            }} />
+            <style>{`@keyframes blink-cursor { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }`}</style>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
       <ChatActionsRow
