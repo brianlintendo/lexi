@@ -199,8 +199,48 @@ export default function JournalPage() {
       {/* Main Content */}
       <div className="journal-main">
         <div className="date-heading">{formatDateHeading(selectedDate)}</div>
-        {/* Only show prompt/textarea if no chat in progress */}
-        {!chatPreview && (
+        {/* Show chat bubbles below date if chatPreview exists */}
+        {chatPreview ? (
+          <>
+            <div style={{ width: '100%', margin: '24px 0 0 0' }}>
+              <ChatBubble sender="ai" text={chatPreview.ai.text} />
+              <ChatBubble sender="user" text={chatPreview.user.text} />
+            </div>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16, marginTop: 32 }}>
+              <button
+                style={{
+                  width: '100%',
+                  background: '#7A54FF',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: 20,
+                  border: 'none',
+                  borderRadius: 14,
+                  padding: '1.1rem 0',
+                  marginBottom: 0,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px 0 rgba(122,84,255,0.10)'
+                }}
+                onClick={handleResume}
+              >Resume</button>
+              <button
+                style={{
+                  width: '100%',
+                  background: '#D1D1D1',
+                  color: '#212121',
+                  fontWeight: 700,
+                  fontSize: 20,
+                  border: 'none',
+                  borderRadius: 14,
+                  padding: '1.1rem 0',
+                  cursor: 'pointer',
+                  marginBottom: 0
+                }}
+                onClick={handleEnd}
+              >End</button>
+            </div>
+          </>
+        ) : (
           <>
             <div className="prompt-bubble">
               Bonjour ! Prêt(e) à écrire en français ?<br />
@@ -216,87 +256,23 @@ export default function JournalPage() {
         )}
       </div>
 
-      {/* Conversation preview if in progress */}
-      {chatPreview && (
-        <div style={{
-          background: 'linear-gradient(180deg, #F9F7FF 0%, #F4F4F6 100%)',
-          borderRadius: 24,
-          boxShadow: '0 2px 12px 0 rgba(122,84,255,0.04)',
-          padding: '2rem 1.5rem',
-          margin: '2rem 0',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}>
-          <div style={{ width: '100%', display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-            <div style={{ fontSize: 20, fontWeight: 600, color: '#212121', flex: 1 }}>
-              {formatDateHeading(selectedDate)}
-            </div>
-            <span style={{
-              border: '2px solid #BDBDBD',
-              borderRadius: 24,
-              padding: '4px 18px',
-              fontSize: 16,
-              color: '#757575',
-              fontWeight: 600,
-              marginLeft: 12
-            }}>IN PROGRESS</span>
-          </div>
-          <div style={{ width: '100%', marginBottom: 16 }}>
-            <ChatBubble sender="ai" text={chatPreview.ai.text} />
-            <ChatBubble sender="user" text={chatPreview.user.text} />
-          </div>
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
-            <button
-              style={{
-                width: '100%',
-                background: '#7A54FF',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: 20,
-                border: 'none',
-                borderRadius: 14,
-                padding: '1.1rem 0',
-                marginBottom: 0,
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px 0 rgba(122,84,255,0.10)'
-              }}
-              onClick={handleResume}
-            >Resume</button>
-            <button
-              style={{
-                width: '100%',
-                background: '#D1D1D1',
-                color: '#212121',
-                fontWeight: 700,
-                fontSize: 20,
-                border: 'none',
-                borderRadius: 14,
-                padding: '1.1rem 0',
-                cursor: 'pointer',
-                marginBottom: 0
-              }}
-              onClick={handleEnd}
-            >End</button>
-          </div>
+      {/* Bottom Actions: only show if no chat in progress */}
+      {!chatPreview && (
+        <div className="journal-actions">
+          <button className="action-btn action-btn-icon" style={{ width: 52, height: 52 }}>
+            <img src={micIcon} alt="Mic" style={{ width: 28, height: 28 }} />
+            <div>Speak</div>
+          </button>
+          <button className="action-btn send-btn" style={{ width: 80, height: 80 }} onClick={() => navigate('/chat')}>
+            <img src={sendIcon} alt="Send" style={{ width: 36, height: 36 }} />
+            <div>Send</div>
+          </button>
+          <button className="action-btn action-btn-icon" style={{ width: 52, height: 52 }}>
+            <img src={imageIcon} alt="Image" style={{ width: 28, height: 28 }} />
+            <div>Image</div>
+          </button>
         </div>
       )}
-
-      {/* Bottom Actions */}
-      <div className="journal-actions">
-        <button className="action-btn action-btn-icon" style={{ width: 52, height: 52 }}>
-          <img src={micIcon} alt="Mic" style={{ width: 28, height: 28 }} />
-          <div>Speak</div>
-        </button>
-        <button className="action-btn send-btn" style={{ width: 80, height: 80 }} onClick={() => navigate('/chat')}>
-          <img src={sendIcon} alt="Send" style={{ width: 36, height: 36 }} />
-          <div>Send</div>
-        </button>
-        <button className="action-btn action-btn-icon" style={{ width: 52, height: 52 }}>
-          <img src={imageIcon} alt="Image" style={{ width: 28, height: 28 }} />
-          <div>Image</div>
-        </button>
-      </div>
 
       {/* Tab Bar */}
       <div className="tab-bar">
