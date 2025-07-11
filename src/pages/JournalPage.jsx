@@ -260,7 +260,7 @@ export default function JournalPage() {
 
       {/* Bottom Actions: only show if no chat in progress */}
       {!chatPreview && (
-        <div style={{ marginBottom: 32 }}>
+        <div style={{ marginBottom: 96 }}>
           <ChatActionsRow
             onSpeak={() => {}}
             onSend={() => navigate('/chat')}
@@ -288,6 +288,7 @@ export default function JournalPage() {
         alignItems: 'center',
         height: 72,
         padding: '0 16px',
+        overflow: 'hidden',
       }}>
         <div className="tab active">
           <JournalIcon style={{ width: 24, height: 24 }} />
