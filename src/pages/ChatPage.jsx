@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import '../styles/global.css';
+import { getChatCompletion } from '../openai';
 
 const initialMessages = [
   { sender: 'ai', text: 'Bonjour ! Je suis Lexi. Pose-moi une question ou commence à discuter en français !', timestamp: new Date() }
@@ -8,18 +9,28 @@ const initialMessages = [
 export default function ChatPage() {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
-    setMessages([...messages, { sender: 'user', text: input, timestamp: new Date() }]);
+    if (!input.trim() || loading) return;
+    const userMsg = { sender: 'user', text: input, timestamp: new Date() };
+    setMessages(prev => [...prev, userMsg]);
     setInput('');
-    // AI response will be handled in a later step
+    setLoading(true);
+    try {
+      const aiText = await getChatCompletion(input);
+      setMessages(prev => [...prev, { sender: 'ai', text: aiText, timestamp: new Date() }]);
+    } catch (err) {
+      setMessages(prev => [...prev, { sender: 'ai', text: 'Sorry, there was an error contacting Lexi. Please try again.', timestamp: new Date() }]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -47,6 +58,15 @@ export default function ChatPage() {
             </div>
           </div>
         ))}
+        {loading && (
+          <div style={{ display: 'flex', marginBottom: 12 }}>
+            <div style={{
+              background: '#fff', color: '#7A54FF', border: '1px solid #e0e0e0', borderRadius: 16, padding: '10px 16px', maxWidth: '70%', fontSize: 16, opacity: 0.7
+            }}>
+              Lexi is typing...
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
       <form className="chat-input-row" onSubmit={handleSend} style={{ display: 'flex', padding: '1rem', borderTop: '1px solid #eee', background: '#fff' }}>
@@ -57,9 +77,10 @@ export default function ChatPage() {
           value={input}
           onChange={e => setInput(e.target.value)}
           style={{ flex: 1, fontSize: 16, padding: '10px 12px', borderRadius: 8, border: '1px solid #e0e0e0' }}
+          disabled={loading}
         />
-        <button type="submit" className="chat-send-btn" style={{ marginLeft: 12, background: '#7A54FF', color: '#fff', border: 'none', borderRadius: 8, padding: '0 20px', fontSize: 16, fontWeight: 'bold', cursor: 'pointer' }}>
-          Send
+        <button type="submit" className="chat-send-btn" style={{ marginLeft: 12, background: '#7A54FF', color: '#fff', border: 'none', borderRadius: 8, padding: '0 20px', fontSize: 16, fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer' }} disabled={loading}>
+          {loading ? '...' : 'Send'}
         </button>
       </form>
     </div>
