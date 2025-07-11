@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/global.css';
-import { ReactComponent as MicIcon } from '../assets/icons/mic.svg';
-import { ReactComponent as SendIcon } from '../assets/icons/send.svg';
-import { ReactComponent as ImageIcon } from '../assets/icons/image.svg';
-import { ReactComponent as JournalIcon } from '../assets/icons/journal.svg';
-import { ReactComponent as SavedIcon } from '../assets/icons/saved.svg';
-import { ReactComponent as AccountIcon } from '../assets/icons/account.svg';
-import { ReactComponent as FranceFlag } from '../assets/icons/france-flag.svg';
+import micIcon from '../assets/icons/mic.svg';
+import sendIcon from '../assets/icons/send.svg';
+import imageIcon from '../assets/icons/image.svg';
+import savedIcon from '../assets/icons/saved.svg';
+import accountIcon from '../assets/icons/account.svg';
+import { useNavigate } from 'react-router-dom';
+// Lucide placeholders for missing icons
+const JournalIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg>
+);
+const FranceFlag = (props) => (
+  <svg viewBox="0 0 24 24" width="24" height="24" {...props}><rect width="24" height="24" rx="4" fill="#fff"/><rect x="0" y="0" width="8" height="24" fill="#0055A4"/><rect x="16" y="0" width="8" height="24" fill="#EF4135"/></svg>
+);
 
 const weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
@@ -48,6 +54,7 @@ export default function JournalPage() {
   const [lang, setLang] = useState('fr');
   const [search, setSearch] = useState('');
   const [text, setText] = useState('');
+  const navigate = useNavigate();
 
   const weekDates = getWeekDates(selectedDate);
   const selectedKey = getDateKey(selectedDate);
@@ -177,15 +184,15 @@ export default function JournalPage() {
       {/* Bottom Actions */}
       <div className="journal-actions">
         <button className="action-btn action-btn-icon" style={{ width: 52, height: 52 }}>
-          <MicIcon style={{ width: 28, height: 28 }} />
+          <img src={micIcon} alt="Mic" style={{ width: 28, height: 28 }} />
           <div>Speak</div>
         </button>
-        <button className="action-btn send-btn" style={{ width: 80, height: 80 }}>
-          <SendIcon style={{ width: 36, height: 36 }} />
+        <button className="action-btn send-btn" style={{ width: 80, height: 80 }} onClick={() => navigate('/chat')}>
+          <img src={sendIcon} alt="Send" style={{ width: 36, height: 36 }} />
           <div>Send</div>
         </button>
         <button className="action-btn action-btn-icon" style={{ width: 52, height: 52 }}>
-          <ImageIcon style={{ width: 28, height: 28 }} />
+          <img src={imageIcon} alt="Image" style={{ width: 28, height: 28 }} />
           <div>Image</div>
         </button>
       </div>
@@ -197,11 +204,11 @@ export default function JournalPage() {
           <div>Journal</div>
         </div>
         <div className="tab">
-          <SavedIcon style={{ width: 24, height: 24 }} />
+          <img src={savedIcon} alt="Saved" style={{ width: 24, height: 24 }} />
           <div>Saved</div>
         </div>
         <div className="tab">
-          <AccountIcon style={{ width: 24, height: 24 }} />
+          <img src={accountIcon} alt="Account" style={{ width: 24, height: 24 }} />
           <div>Account</div>
         </div>
       </div>
