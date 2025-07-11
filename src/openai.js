@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_KEY,
+  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true,
 });
 
@@ -32,7 +32,7 @@ export async function transcribeWithWhisper(audioBlob, language = 'fr') {
   const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_KEY}`,
+      'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
     },
     body: formData,
   });
