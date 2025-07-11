@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import arrowLeftIcon from '../assets/icons/arrow-left.svg';
 import bookIcon from '../assets/icons/book.svg';
-import magicWandIcon from '../assets/icons/magic-wand.svg';
+import themesIcon from '../assets/icons/themes.svg';
 
 export default function ChatHeader({ wordCount = 0, wordLimit = 200, onBack }) {
   const navigate = useNavigate();
@@ -24,8 +24,8 @@ export default function ChatHeader({ wordCount = 0, wordLimit = 200, onBack }) {
           <button aria-label="Book" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
             <img src={bookIcon} alt="Book" style={{ width: 28, height: 28 }} />
           </button>
-          <button aria-label="Magic Wand" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            <img src={magicWandIcon} alt="Magic Wand" style={{ width: 28, height: 28 }} />
+          <button aria-label="Themes" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+            <img src={themesIcon} alt="Themes" style={{ width: 28, height: 28 }} />
           </button>
         </div>
       </div>
