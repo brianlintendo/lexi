@@ -5,19 +5,82 @@ import imageIcon from '../assets/icons/image.svg';
 
 export default function ChatActionsRow({ onSpeak, onSend, onImage, sendDisabled }) {
   return (
-    <div className="chat-actions-row" style={{ display: 'flex', justifyContent: 'center', gap: 24, padding: '1.5rem 0' }}>
-      <button className="action-btn action-btn-icon" style={{ width: 52, height: 52 }} onClick={onSpeak}>
-        <img src={micIcon} alt="Mic" style={{ width: 28, height: 28 }} />
-        <div>Speak</div>
-      </button>
-      <button className="action-btn send-btn" style={{ width: 80, height: 80 }} onClick={onSend} disabled={sendDisabled}>
-        <img src={sendIcon} alt="Send" style={{ width: 36, height: 36 }} />
-        <div>Send</div>
-      </button>
-      <button className="action-btn action-btn-icon" style={{ width: 52, height: 52 }} onClick={onImage}>
-        <img src={imageIcon} alt="Image" style={{ width: 28, height: 28 }} />
-        <div>Image</div>
-      </button>
+    <div className="chat-actions-row" style={{ display: 'flex', justifyContent: 'center', gap: 36, padding: '1.5rem 0' }}>
+      {/* Speak Button */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <button
+          className="action-btn action-btn-icon"
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: '50%',
+            background: '#F4F4F6',
+            boxShadow: '0 2px 8px 0 rgba(122,84,255,0.10)',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 4,
+            cursor: 'pointer',
+            padding: 0
+          }}
+          onClick={onSpeak}
+        >
+          <img src={micIcon} alt="Mic" style={{ width: 28, height: 28, color: '#212121' }} />
+        </button>
+        <span style={{ fontSize: 13, color: '#A0A0A0', marginTop: 2 }}>Speak</span>
+      </div>
+      {/* Send Button */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <button
+          className="send-btn"
+          style={{
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #7A54FF 0%, #00C853 100%)',
+            boxShadow: '0 4px 16px 0 rgba(122,84,255,0.18)',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 4,
+            cursor: sendDisabled ? 'not-allowed' : 'pointer',
+            opacity: sendDisabled ? 0.5 : 1,
+            padding: 0,
+            transition: 'opacity 0.2s'
+          }}
+          onClick={onSend}
+          disabled={sendDisabled}
+        >
+          <img src={sendIcon} alt="Send" style={{ width: 36, height: 36, filter: 'brightness(0) invert(1)' }} />
+        </button>
+        <span style={{ fontSize: 13, color: '#A0A0A0', marginTop: 2 }}>Send</span>
+      </div>
+      {/* Image Button */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <button
+          className="action-btn action-btn-icon"
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: '50%',
+            background: '#F4F4F6',
+            boxShadow: '0 2px 8px 0 rgba(122,84,255,0.10)',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 4,
+            cursor: 'pointer',
+            padding: 0
+          }}
+          onClick={onImage}
+        >
+          <img src={imageIcon} alt="Image" style={{ width: 28, height: 28, color: '#212121' }} />
+        </button>
+        <span style={{ fontSize: 13, color: '#A0A0A0', marginTop: 2 }}>Image</span>
+      </div>
     </div>
   );
 } 
