@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import '../styles/global.css';
 import { getChatCompletion } from '../openai';
+import ChatBubble from '../components/ChatBubble';
 
 const initialMessages = [
   { sender: 'ai', text: 'Bonjour ! Je suis Lexi. Pose-moi une question ou commence à discuter en français !', timestamp: new Date() }
@@ -40,33 +41,9 @@ export default function ChatPage() {
       </header>
       <div className="chat-messages" style={{ flex: 1, overflowY: 'auto', padding: '1rem', background: '#fafaff' }}>
         {messages.map((msg, idx) => (
-          <div key={idx} style={{
-            display: 'flex',
-            flexDirection: msg.sender === 'user' ? 'row-reverse' : 'row',
-            marginBottom: 12
-          }}>
-            <div style={{
-              background: msg.sender === 'user' ? '#7A54FF' : '#fff',
-              color: msg.sender === 'user' ? '#fff' : '#7A54FF',
-              border: '1px solid #e0e0e0',
-              borderRadius: 16,
-              padding: '10px 16px',
-              maxWidth: '70%',
-              fontSize: 16
-            }}>
-              {msg.text}
-            </div>
-          </div>
+          <ChatBubble key={idx} sender={msg.sender} text={msg.text} />
         ))}
-        {loading && (
-          <div style={{ display: 'flex', marginBottom: 12 }}>
-            <div style={{
-              background: '#fff', color: '#7A54FF', border: '1px solid #e0e0e0', borderRadius: 16, padding: '10px 16px', maxWidth: '70%', fontSize: 16, opacity: 0.7
-            }}>
-              Lexi is typing...
-            </div>
-          </div>
-        )}
+        {loading && <ChatBubble sender="ai" loading />}
         <div ref={messagesEndRef} />
       </div>
       <form className="chat-input-row" onSubmit={handleSend} style={{ display: 'flex', padding: '1rem', borderTop: '1px solid #eee', background: '#fff' }}>
