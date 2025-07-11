@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import '../styles/global.css';
 import { getChatCompletion } from '../openai';
 import ChatBubble from '../components/ChatBubble';
+import ChatActionsRow from '../components/ChatActionsRow';
 
 const initialMessages = [
   { sender: 'ai', text: 'Bonjour ! Je suis Lexi. Pose-moi une question ou commence à discuter en français !', timestamp: new Date() }
@@ -44,22 +45,15 @@ export default function ChatPage() {
           <ChatBubble key={idx} sender={msg.sender} text={msg.text} />
         ))}
         {loading && <ChatBubble sender="ai" loading />}
+        {input && !loading && <ChatBubble sender="user" text={input} />}
         <div ref={messagesEndRef} />
       </div>
-      <form className="chat-input-row" onSubmit={handleSend} style={{ display: 'flex', padding: '1rem', borderTop: '1px solid #eee', background: '#fff' }}>
-        <input
-          type="text"
-          className="chat-input"
-          placeholder="Type your message..."
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          style={{ flex: 1, fontSize: 16, padding: '10px 12px', borderRadius: 8, border: '1px solid #e0e0e0' }}
-          disabled={loading}
-        />
-        <button type="submit" className="chat-send-btn" style={{ marginLeft: 12, background: '#7A54FF', color: '#fff', border: 'none', borderRadius: 8, padding: '0 20px', fontSize: 16, fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer' }} disabled={loading}>
-          {loading ? '...' : 'Send'}
-        </button>
-      </form>
+      <ChatActionsRow
+        onSpeak={() => {}}
+        onSend={handleSend}
+        onImage={() => {}}
+        sendDisabled={!input.trim() || loading}
+      />
     </div>
   );
 } 
