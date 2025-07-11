@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import '../styles/global.css';
-import { getChatCompletion } from '../openai';
+import { getChatCompletion, transcribeWithWhisper, elevenLabsTTS } from '../openai';
 import ChatBubble from '../components/ChatBubble';
 import ChatActionsRow from '../components/ChatActionsRow';
 import ChatHeader from '../components/ChatHeader';
@@ -14,6 +14,10 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  // Voice recording state
+  const [recording, setRecording] = useState(false);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -33,10 +37,42 @@ export default function ChatPage() {
     try {
       const aiText = await getChatCompletion(input);
       setMessages(prev => [...prev, { sender: 'ai', text: aiText, timestamp: new Date() }]);
+      // ElevenLabs TTS integration
+      try {
+        const audioUrl = await elevenLabsTTS(aiText, "EXAVITQu4vr4xnSDxMaL", "fr");
+        const audio = new Audio(audioUrl);
+        audio.play();
+      } catch (ttsErr) {
+        console.error('TTS error:', ttsErr);
+      }
     } catch (err) {
       setMessages(prev => [...prev, { sender: 'ai', text: 'Sorry, there was an error contacting Lexi. Please try again.', timestamp: new Date() }]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSpeak = async () => {
+    if (!recording) {
+      // Start recording
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new window.MediaRecorder(stream);
+      audioChunksRef.current = [];
+      mediaRecorderRef.current.ondataavailable = (e) => {
+        audioChunksRef.current.push(e.data);
+      };
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setRecording(false);
+        // Transcribe with Whisper
+        const transcription = await transcribeWithWhisper(audioBlob, 'fr');
+        setInput(transcription);
+      };
+      mediaRecorderRef.current.start();
+      setRecording(true);
+    } else {
+      // Stop recording
+      mediaRecorderRef.current.stop();
     }
   };
 
@@ -104,7 +140,7 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
       <ChatActionsRow
-        onSpeak={() => {}}
+        onSpeak={handleSpeak}
         onSend={handleSend}
         onImage={() => {}}
         sendDisabled={!input.trim() || loading}

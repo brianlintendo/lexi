@@ -9,12 +9,10 @@ import { useNavigate } from 'react-router-dom';
 import ChatBubble from '../components/ChatBubble';
 import BottomSheet from '../components/BottomSheet';
 import ChatActionsRow from '../components/ChatActionsRow';
+import 'flag-icons/css/flag-icons.min.css';
 // Lucide placeholders for missing icons
 const JournalIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg>
-);
-const FranceFlag = (props) => (
-  <svg viewBox="0 0 24 24" width="24" height="24" {...props}><rect width="24" height="24" rx="4" fill="#fff"/><rect x="0" y="0" width="8" height="24" fill="#0055A4"/><rect x="16" y="0" width="8" height="24" fill="#EF4135"/></svg>
 );
 
 const weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
@@ -183,9 +181,7 @@ export default function JournalPage() {
             );
           })}
         </div>
-        <button className="lang-btn" aria-label="Change language">
-          <FranceFlag style={{ width: 24, height: 24 }} />
-        </button>
+        <span className="fi fi-fr" style={{ fontSize: 24, marginLeft: 16, cursor: 'pointer' }} aria-label="French Flag" />
       </div>
 
       {/* Search Bar */}
