@@ -46,17 +46,19 @@ export default function ChatPage() {
         ))}
         {loading && <ChatBubble sender="ai" loading />}
         {input && !loading && <ChatBubble sender="user" text={input} />}
-        {!loading && (!input || input === '') && messages.length > 0 && messages[messages.length-1].sender === 'ai' && (
+        {!loading && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginBottom: 16 }}>
-            <span style={{
-              display: 'inline-block',
-              width: 2,
-              height: 28,
-              background: '#7A54FF',
-              marginLeft: 12,
-              animation: 'blink-cursor 1s steps(2, start) infinite',
-              borderRadius: 1
-            }} />
+            {input === '' && (
+              <span style={{
+                display: 'inline-block',
+                width: 2,
+                height: 28,
+                background: '#7A54FF',
+                marginLeft: 12,
+                animation: 'blink-cursor 1s steps(2, start) infinite',
+                borderRadius: 1
+              }} />
+            )}
             <style>{`@keyframes blink-cursor { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }`}</style>
             <textarea
               value={input}
@@ -64,7 +66,7 @@ export default function ChatPage() {
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  handleSend(e);
+                  if (input.trim()) handleSend(e);
                 }
               }}
               placeholder="Type your message..."
