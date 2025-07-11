@@ -199,16 +199,21 @@ export default function JournalPage() {
       {/* Main Content */}
       <div className="journal-main">
         <div className="date-heading">{formatDateHeading(selectedDate)}</div>
-        <div className="prompt-bubble">
-          Bonjour ! Prêt(e) à écrire en français ?<br />
-          Comment tu te sens aujourd'hui ?
-        </div>
-        <textarea
-          className="journal-textarea"
-          placeholder="Je me sens..."
-          value={text}
-          onChange={handleTextChange}
-        />
+        {/* Only show prompt/textarea if no chat in progress */}
+        {!chatPreview && (
+          <>
+            <div className="prompt-bubble">
+              Bonjour ! Prêt(e) à écrire en français ?<br />
+              Comment tu te sens aujourd'hui ?
+            </div>
+            <textarea
+              className="journal-textarea"
+              placeholder="Je me sens..."
+              value={text}
+              onChange={handleTextChange}
+            />
+          </>
+        )}
       </div>
 
       {/* Conversation preview if in progress */}
