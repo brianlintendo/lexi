@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import arrowLeftIcon from '../assets/icons/arrow-left.svg';
 
 export default function ChatHeader({ wordCount = 0, wordLimit = 200, onBack }) {
   const navigate = useNavigate();
@@ -10,9 +11,9 @@ export default function ChatHeader({ wordCount = 0, wordLimit = 200, onBack }) {
         <button
           aria-label="Back"
           onClick={onBack || (() => navigate('/journal'))}
-          style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#7A54FF', padding: 0 }}
+          style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#7A54FF', padding: 0, display: 'flex', alignItems: 'center' }}
         >
-          ←
+          <img src={arrowLeftIcon} alt="Back" style={{ width: 28, height: 28 }} />
         </button>
         <div style={{ flex: 1, textAlign: 'center', fontFamily: 'Albert Sans, sans-serif', fontWeight: 700, fontSize: 18, color: '#212121' }}>
           Lexi Chat
