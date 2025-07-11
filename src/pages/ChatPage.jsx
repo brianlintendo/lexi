@@ -47,7 +47,7 @@ export default function ChatPage() {
         {loading && <ChatBubble sender="ai" loading />}
         {input && !loading && <ChatBubble sender="user" text={input} />}
         {!loading && (!input || input === '') && messages.length > 0 && messages[messages.length-1].sender === 'ai' && (
-          <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginBottom: 16 }}>
             <span style={{
               display: 'inline-block',
               width: 2,
@@ -58,6 +58,37 @@ export default function ChatPage() {
               borderRadius: 1
             }} />
             <style>{`@keyframes blink-cursor { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }`}</style>
+            <textarea
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend(e);
+                }
+              }}
+              placeholder="Type your message..."
+              autoFocus
+              rows={1}
+              style={{
+                marginTop: 8,
+                marginLeft: 12,
+                minHeight: 28,
+                maxWidth: '75%',
+                fontSize: 16,
+                fontFamily: 'Albert Sans, sans-serif',
+                color: '#212121',
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                resize: 'none',
+                padding: 0,
+                boxShadow: 'none',
+                lineHeight: '28px',
+                overflow: 'hidden',
+              }}
+              disabled={loading}
+            />
           </div>
         )}
         <div ref={messagesEndRef} />
