@@ -7,6 +7,8 @@ import savedIcon from '../assets/icons/saved.svg';
 import accountIcon from '../assets/icons/account.svg';
 import { useNavigate } from 'react-router-dom';
 import ChatBubble from '../components/ChatBubble';
+import BottomSheet from '../components/BottomSheet';
+import ChatActionsRow from '../components/ChatActionsRow';
 // Lucide placeholders for missing icons
 const JournalIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg>
@@ -258,20 +260,14 @@ export default function JournalPage() {
 
       {/* Bottom Actions: only show if no chat in progress */}
       {!chatPreview && (
-        <div className="journal-actions">
-          <button className="action-btn action-btn-icon" style={{ width: 52, height: 52 }}>
-            <img src={micIcon} alt="Mic" style={{ width: 28, height: 28 }} />
-            <div>Speak</div>
-          </button>
-          <button className="action-btn send-btn" style={{ width: 80, height: 80 }} onClick={() => navigate('/chat')}>
-            <img src={sendIcon} alt="Send" style={{ width: 36, height: 36 }} />
-            <div>Send</div>
-          </button>
-          <button className="action-btn action-btn-icon" style={{ width: 52, height: 52 }}>
-            <img src={imageIcon} alt="Image" style={{ width: 28, height: 28 }} />
-            <div>Image</div>
-          </button>
-        </div>
+        <BottomSheet>
+          <ChatActionsRow
+            onSpeak={() => {}}
+            onSend={() => navigate('/chat')}
+            onImage={() => {}}
+            sendDisabled={false}
+          />
+        </BottomSheet>
       )}
 
       {/* Tab Bar */}
