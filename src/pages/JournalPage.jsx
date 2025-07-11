@@ -260,18 +260,35 @@ export default function JournalPage() {
 
       {/* Bottom Actions: only show if no chat in progress */}
       {!chatPreview && (
-        <BottomSheet>
+        <div style={{ marginBottom: 32 }}>
           <ChatActionsRow
             onSpeak={() => {}}
             onSend={() => navigate('/chat')}
             onImage={() => {}}
             sendDisabled={false}
           />
-        </BottomSheet>
+        </div>
       )}
 
-      {/* Tab Bar */}
-      <div className="tab-bar">
+      {/* Tab Bar (bottom nav) - always present, rounded top corners */}
+      <div className="tab-bar" style={{
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        boxShadow: '0 -2px 16px 0 rgba(122,84,255,0.06)',
+        background: '#fff',
+        position: 'fixed',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 99,
+        maxWidth: 480,
+        margin: '0 auto',
+        display: 'flex',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        height: 72,
+        padding: '0 16px',
+      }}>
         <div className="tab active">
           <JournalIcon style={{ width: 24, height: 24 }} />
           <div>Journal</div>
