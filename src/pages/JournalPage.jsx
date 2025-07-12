@@ -11,6 +11,7 @@ import BottomSheet from '../components/BottomSheet';
 import ChatActionsRow from '../components/ChatActionsRow';
 import 'flag-icons/css/flag-icons.min.css';
 import { useJournal } from '../components/JournalContext';
+import LanguageSheet from '../components/LanguageSheet';
 // Lucide placeholders for missing icons
 const JournalIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg>
@@ -57,7 +58,8 @@ export default function JournalPage() {
   const [search, setSearch] = useState('');
   const [text, setText] = useState('');
   const navigate = useNavigate();
-  const { journalInput, setJournalInput } = useJournal();
+  const { journalInput, setJournalInput, language, setLanguage } = useJournal();
+  const [showLangSheet, setShowLangSheet] = useState(false);
 
   // Conversation preview logic
   const [chatPreview, setChatPreview] = useState(null);
@@ -125,6 +127,23 @@ export default function JournalPage() {
     setText(journalEntries[key] || '');
   };
 
+  const PROMPT_BUBBLES = {
+    en: "Hello! Ready to write in English? How are you feeling today?",
+    es: "¡Hola! ¿Listo(a) para escribir en español? ¿Cómo te sientes hoy?",
+    fr: "Bonjour ! Prêt(e) à écrire en français ? Comment tu te sens aujourd'hui ?",
+    zh: "你好！准备好用中文写作了吗？你今天感觉怎么样？",
+    pt: "Olá! Pronto(a) para escrever em português? Como você está se sentindo hoje?",
+    it: "Ciao! Pronto(a) a scrivere in italiano? Come ti senti oggi?",
+  };
+  const PLACEHOLDERS = {
+    en: "I feel...",
+    es: "Me siento...",
+    fr: "Je me sens...",
+    zh: "我觉得...",
+    pt: "Eu me sinto...",
+    it: "Mi sento...",
+  };
+
   return (
     <div className="journal-bg">
       {/* Top Section */}
@@ -184,7 +203,12 @@ export default function JournalPage() {
             );
           })}
         </div>
-        <span className="fi fi-fr" style={{ fontSize: 24, marginLeft: 16, cursor: 'pointer' }} aria-label="French Flag" />
+        <span
+          className={`fi fi-${language === 'en' ? 'us' : language === 'es' ? 'es' : language === 'fr' ? 'fr' : language === 'zh' ? 'cn' : language === 'pt' ? 'br' : language === 'it' ? 'it' : 'fr'}`}
+          style={{ fontSize: 24, marginLeft: 16, cursor: 'pointer' }}
+          aria-label="Language Flag"
+          onClick={() => setShowLangSheet(true)}
+        />
       </div>
 
       {/* Search Bar */}
@@ -244,12 +268,11 @@ export default function JournalPage() {
         ) : (
           <>
             <div className="prompt-bubble">
-              Bonjour ! Prêt(e) à écrire en français ?<br />
-              Comment tu te sens aujourd'hui ?
+              {PROMPT_BUBBLES[language] || PROMPT_BUBBLES['fr']}
             </div>
             <textarea
               className="journal-textarea"
-              placeholder="Je me sens..."
+              placeholder={PLACEHOLDERS[language] || PLACEHOLDERS['fr']}
               value={text}
               onChange={handleTextChange}
             />
@@ -302,6 +325,12 @@ export default function JournalPage() {
           <div>Account</div>
         </div>
       </div>
+      <LanguageSheet
+        open={showLangSheet}
+        onClose={() => setShowLangSheet(false)}
+        selected={language}
+        onSelect={code => { setLanguage(code); setShowLangSheet(false); }}
+      />
     </div>
   );
 } 
