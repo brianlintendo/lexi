@@ -10,6 +10,7 @@ import ChatBubble from '../components/ChatBubble';
 import BottomSheet from '../components/BottomSheet';
 import ChatActionsRow from '../components/ChatActionsRow';
 import 'flag-icons/css/flag-icons.min.css';
+import { useJournal } from '../components/JournalContext';
 // Lucide placeholders for missing icons
 const JournalIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg>
@@ -56,6 +57,7 @@ export default function JournalPage() {
   const [search, setSearch] = useState('');
   const [text, setText] = useState('');
   const navigate = useNavigate();
+  const { journalInput, setJournalInput } = useJournal();
 
   // Conversation preview logic
   const [chatPreview, setChatPreview] = useState(null);
@@ -112,6 +114,7 @@ export default function JournalPage() {
   // Save entry for selected date
   const handleTextChange = (e) => {
     setText(e.target.value);
+    setJournalInput(e.target.value); // <-- update context
     setJournalEntries((prev) => ({ ...prev, [selectedKey]: e.target.value }));
   };
 

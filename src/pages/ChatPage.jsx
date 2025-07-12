@@ -4,6 +4,7 @@ import { getChatCompletion, transcribeWithWhisper, elevenLabsTTS } from '../open
 import ChatBubble from '../components/ChatBubble';
 import ChatActionsRow from '../components/ChatActionsRow';
 import ChatHeader from '../components/ChatHeader';
+import { useJournal } from '../components/JournalContext';
 
 const initialMessages = [
   { sender: 'ai', text: 'Bonjour ! Je suis Lexi. Pose-moi une question ou commence à discuter en français !', timestamp: new Date() }
@@ -11,7 +12,8 @@ const initialMessages = [
 
 export default function ChatPage() {
   const [messages, setMessages] = useState(initialMessages);
-  const [input, setInput] = useState('');
+  const { journalInput } = useJournal();
+  const [input, setInput] = useState(journalInput || '');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
   // Voice recording state
@@ -89,53 +91,39 @@ export default function ChatPage() {
           <ChatBubble key={idx} sender={msg.sender} text={msg.text} />
         ))}
         {loading && <ChatBubble sender="ai" loading />}
-        {input && !loading && <ChatBubble sender="user" text={input} />}
         {!loading && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginBottom: 16 }}>
-            {input === '' && (
-              <span style={{
-                display: 'inline-block',
-                width: 2,
-                height: 28,
-                background: '#7A54FF',
-                marginLeft: 12,
-                animation: 'blink-cursor 1s steps(2, start) infinite',
-                borderRadius: 1
-              }} />
-            )}
-            <style>{`@keyframes blink-cursor { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }`}</style>
-            <textarea
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  if (input.trim()) handleSend(e);
-                }
-              }}
-              placeholder="Type your message..."
-              autoFocus
-              rows={1}
-              style={{
-                marginTop: 8,
-                marginLeft: 12,
-                minHeight: 28,
-                maxWidth: '75%',
-                fontSize: 16,
-                fontFamily: 'Albert Sans, sans-serif',
-                color: '#212121',
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                resize: 'none',
-                padding: 0,
-                boxShadow: 'none',
-                lineHeight: '28px',
-                overflow: 'hidden',
-              }}
-              disabled={loading}
-            />
-          </div>
+          <textarea
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (input.trim()) handleSend(e);
+              }
+            }}
+            placeholder="Type your message..."
+            autoFocus
+            style={{
+              marginTop: 24,
+              width: '100%',
+              fontSize: 16,
+              fontFamily: 'Albert Sans, sans-serif',
+              color: '#212121',
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              resize: 'none',
+              padding: 0,
+              boxShadow: 'none',
+              lineHeight: '28px',
+              minHeight: '180px',
+              height: '100%',
+              flex: 1,
+              overflow: 'auto',
+              display: 'block',
+            }}
+            disabled={loading}
+          />
         )}
         <div ref={messagesEndRef} />
       </div>
