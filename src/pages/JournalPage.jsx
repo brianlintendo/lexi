@@ -90,6 +90,27 @@ export default function JournalPage() {
 
   const handleResume = () => navigate('/chat');
   const handleEnd = () => {
+    // Get the full conversation before clearing it
+    const stored = localStorage.getItem('lexi-chat-messages');
+    if (stored) {
+      try {
+        const messages = JSON.parse(stored);
+        // Extract all user messages and format them as a journal entry
+        const userMessages = messages
+          .filter(msg => msg.sender === 'user')
+          .map(msg => msg.text)
+          .join('\n\n');
+        
+        // Save as journal entry for today
+        const todayKey = getDateKey(new Date());
+        setJournalEntries(prev => ({ ...prev, [todayKey]: userMessages }));
+        setText(userMessages);
+        setShowCompletedEntry(true);
+      } catch (error) {
+        console.error('Error processing chat messages:', error);
+      }
+    }
+    
     localStorage.removeItem('lexi-chat-messages');
     setChatPreview(null);
   };
@@ -152,6 +173,7 @@ export default function JournalPage() {
   const [savedWords, setSavedWords] = useState([]);
   const [newWord, setNewWord] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showCompletedEntry, setShowCompletedEntry] = useState(false);
 
   const loadSavedPhrases = async () => {
     if (!user?.id) {
@@ -303,14 +325,50 @@ export default function JournalPage() {
       {/* Main Content */}
       <div className="journal-main">
         <div className="date-heading">{formatDateHeading(selectedDate)}</div>
-        {/* Show chat bubbles below date if chatPreview exists */}
-        {chatPreview ? (
+        {/* Show completed journal entry */}
+        {showCompletedEntry && text ? (
+          <div style={{ 
+            width: '100%', 
+            margin: '24px 0 0 0',
+            padding: '24px',
+            backgroundColor: '#fff',
+            borderRadius: '16px',
+            border: '1px solid #E0E0E0',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+          }}>
+            <h3 style={{ 
+              color: '#7A54FF', 
+              fontWeight: 700, 
+              fontSize: '18px',
+              marginBottom: '16px',
+              marginTop: 0
+            }}>
+              Journal Entry
+            </h3>
+            <div style={{
+              fontSize: '16px',
+              lineHeight: '1.6',
+              color: '#212121',
+              whiteSpace: 'pre-wrap',
+              fontFamily: 'inherit'
+            }}>
+              {text.split('\n\n').map((paragraph, index) => (
+                <p key={index} style={{
+                  margin: index > 0 ? '16px 0 0 0' : '0 0 16px 0',
+                  padding: 0
+                }}>
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          </div>
+        ) : chatPreview ? (
           <>
             <div style={{ width: '100%', margin: '24px 0 0 0' }}>
               <ChatBubble sender="ai" text={chatPreview.ai.text} />
               <ChatBubble sender="user" text={chatPreview.user.text} />
             </div>
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16, marginTop: 32 }}>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16, marginTop: 32, marginBottom: 120 }}>
               <button
                 style={{
                   width: '100%',
@@ -361,7 +419,7 @@ export default function JournalPage() {
 
       {/* Bottom Actions: only show if no chat in progress */}
       {!chatPreview && (
-        <div style={{ marginBottom: 96 }}>
+        <div style={{ marginBottom: 120 }}>
           <ChatActionsRow
             onSpeak={() => {}}
             onSend={() => navigate('/chat')}

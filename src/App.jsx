@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import JournalPage from './pages/JournalPage';
 import SettingsPage from './pages/SettingsPage';
@@ -52,7 +52,10 @@ function App() {
         <div className="bg-default" style={{ minHeight: '100vh' }}>
           <Router>
             <Routes>
-              <Route path="/" element={<HomePage />} />
+              {/* Redirect root to journal page instead of showing landing screen */}
+              <Route path="/" element={<Navigate to="/journal" replace />} />
+              {/* Keep HomePage route for potential future use */}
+              <Route path="/home" element={<HomePage />} />
               <Route path="/journal" element={<JournalPage />} />
               <Route path="/chat" element={<ChatPage />} />
               <Route path="/settings" element={<SettingsPage />} />
