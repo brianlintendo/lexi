@@ -12,6 +12,9 @@ import ChatActionsRow from '../components/ChatActionsRow';
 import 'flag-icons/css/flag-icons.min.css';
 import { useJournal } from '../components/JournalContext';
 import LanguageSheet from '../components/LanguageSheet';
+import bookSavedIcon from '../assets/icons/book-saved.svg';
+import { useUser } from '../hooks/useAuth';
+import { fetchSavedPhrases, addSavedPhrase, removeSavedPhrase, checkPhraseExists } from '../api/savedPhrases';
 // Lucide placeholders for missing icons
 const JournalIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg>
@@ -60,6 +63,7 @@ export default function JournalPage() {
   const navigate = useNavigate();
   const { journalInput, setJournalInput, language, setLanguage } = useJournal();
   const [showLangSheet, setShowLangSheet] = useState(false);
+  const { user } = useUser();
 
   // Conversation preview logic
   const [chatPreview, setChatPreview] = useState(null);
@@ -142,6 +146,81 @@ export default function JournalPage() {
     zh: "我觉得...",
     pt: "Eu me sinto...",
     it: "Mi sento...",
+  };
+
+  // Saved Words Feature
+  const [savedWords, setSavedWords] = useState([]);
+  const [newWord, setNewWord] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const loadSavedPhrases = async () => {
+    if (!user?.id) {
+      setSavedWords([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const phrases = await fetchSavedPhrases(user.id);
+      setSavedWords(phrases);
+    } catch (error) {
+      console.error('Error loading saved phrases:', error);
+      setSavedWords([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSavedPhrases();
+  }, [user?.id]);
+
+  // Reload when page gains focus
+  useEffect(() => {
+    const handleFocus = () => loadSavedPhrases();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user?.id]);
+
+  const addWord = async () => {
+    if (!newWord.trim() || !user?.id) return;
+
+    try {
+      // Check if phrase already exists
+      const exists = await checkPhraseExists(user.id, newWord.trim());
+      if (exists) {
+        setNewWord('');
+        return;
+      }
+
+      // Add the phrase
+      const result = await addSavedPhrase(user.id, newWord.trim(), '');
+      if (result) {
+        setSavedWords(prev => [result, ...prev]);
+        setNewWord('');
+      } else {
+        alert('Failed to save phrase. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error adding phrase:', error);
+      alert('Failed to save phrase. Please try again.');
+    }
+  };
+
+  const removeWord = async (phraseId) => {
+    if (!user?.id) return;
+
+    try {
+      const success = await removeSavedPhrase(user.id, phraseId);
+      if (success) {
+        setSavedWords(prev => prev.filter(item => item.id !== phraseId));
+      } else {
+        alert('Failed to remove phrase. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error removing phrase:', error);
+      alert('Failed to remove phrase. Please try again.');
+    }
   };
 
   return (
@@ -289,6 +368,25 @@ export default function JournalPage() {
             onImage={() => {}}
             sendDisabled={false}
           />
+          {/* Render saved words list for testing */}
+          <div style={{ marginTop: 32 }}>
+            <h3 style={{ fontWeight: 700, color: '#7A54FF', marginBottom: 8 }}>Saved Words (Test)</h3>
+            {!user?.id ? (
+              <div style={{ color: '#888', fontStyle: 'italic', textAlign: 'center' }}>Please sign in to view saved phrases.</div>
+            ) : loading ? (
+              <div style={{ color: '#888', fontStyle: 'italic', textAlign: 'center' }}>Loading...</div>
+            ) : (
+              <ul style={{ listStyle: 'none', padding: 0 }}>
+                {savedWords.map((item) => (
+                  <li key={item.id} style={{ background: '#f3f0ff', borderRadius: 8, padding: '8px 12px', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: 600 }}>{item.phrase}</span>
+                    {item.translation && <span style={{ color: '#888', marginLeft: 8, fontSize: 14 }}>{item.translation}</span>}
+                    <button onClick={() => removeWord(item.id)} style={{ marginLeft: 12, background: 'none', border: 'none', color: '#D32F2F', fontWeight: 700, cursor: 'pointer' }}>Remove</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       )}
 
@@ -309,21 +407,16 @@ export default function JournalPage() {
         justifyContent: 'space-around',
         alignItems: 'center',
         height: 72,
-        padding: '0 16px',
-        overflow: 'hidden',
       }}>
-        <div className="tab active">
-          <JournalIcon style={{ width: 24, height: 24 }} />
-          <div>Journal</div>
-        </div>
-        <div className="tab">
-          <img src={savedIcon} alt="Saved" style={{ width: 24, height: 24 }} />
-          <div>Saved</div>
-        </div>
-        <div className="tab">
-          <img src={accountIcon} alt="Account" style={{ width: 24, height: 24 }} />
-          <div>Account</div>
-        </div>
+        <button onClick={() => navigate('/journal')} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+          <img src={bookSavedIcon} alt="Journal" style={{ width: 28, height: 28 }} />
+        </button>
+        <button onClick={() => navigate('/saved')} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+          <img src={savedIcon} alt="Saved Words" style={{ width: 28, height: 28 }} />
+        </button>
+        <button onClick={() => navigate('/settings')} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+          <img src={accountIcon} alt="Account" style={{ width: 28, height: 28 }} />
+        </button>
       </div>
       <LanguageSheet
         open={showLangSheet}
