@@ -294,7 +294,24 @@ export default function VoiceJournal() {
         )}
         {/* Indicator and dots */}
         <div style={{ marginTop: 32, textAlign: 'center', width: '100%' }}>
-          <div style={{ color: '#888', fontSize: 16, marginBottom: 16, fontWeight: 500 }}>{indicatorText}</div>
+          <div 
+            style={{ 
+              color: '#888', 
+              fontSize: 16, 
+              marginBottom: 16, 
+              fontWeight: 500,
+              cursor: indicatorText === 'Speak now' && !isSpeaking && !isListening ? 'pointer' : 'default',
+              opacity: indicatorText === 'Speak now' && !isSpeaking && !isListening ? 1 : 0.7,
+              transition: 'opacity 0.2s'
+            }}
+            onClick={() => {
+              if (indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted) {
+                startListening();
+              }
+            }}
+          >
+            {indicatorText}
+          </div>
         </div>
         {/* Keyboard mode */}
         {showKeyboard && (
