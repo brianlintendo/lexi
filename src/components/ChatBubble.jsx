@@ -86,6 +86,36 @@ export default function ChatBubble({ sender, text, loading, userText }) {
       vocab = vocabMatch ? vocabMatch[1].trim() : null;
       followup = followupMatch ? followupMatch[1].trim() : null;
     }
+    // If none of the sections are found, render the raw text
+    if (!corrected && !corrections && !phrase && !vocab && !followup) {
+      return (
+        <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 20 }}>
+          <div style={{
+            background: 'linear-gradient(90deg, #7A54FF, #00C853)',
+            borderRadius: 24,
+            padding: 2,
+            display: 'inline-block',
+            boxShadow: '0 2px 12px 0 rgba(122,84,255,0.08)'
+          }}>
+            <div style={{
+              background: '#fff',
+              borderRadius: 22,
+              padding: '18px 24px',
+              minWidth: 60,
+              maxWidth: 340,
+              fontFamily,
+              fontSize: 17,
+              lineHeight: 1.7,
+              color: '#7A54FF',
+              fontWeight: 500,
+              boxShadow: '0 2px 12px 0 rgba(122,84,255,0.08)'
+            }}>
+              {text}
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <>
         <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 20 }}>

@@ -102,7 +102,8 @@ export default function BottomSheet({
   showCloseButton = true,
   maxWidth = 480,
   minWidth = 320,
-  padding = '24px 24px 20px 24px'
+  padding = '24px 24px 20px 24px',
+  style = {},
 }) {
   if (!isOpen) return null;
 
@@ -129,7 +130,7 @@ export default function BottomSheet({
           right: 0,
           bottom: 0,
           zIndex: 100,
-          background: 'transparent',
+          background: '#fff',
           borderTopLeftRadius: 32,
           borderTopRightRadius: 32,
           boxShadow: '0 -4px 32px 0 rgba(122,84,255,0.10)',
@@ -141,6 +142,7 @@ export default function BottomSheet({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          ...style,
         }}
         onClick={e => e.stopPropagation()}
       >

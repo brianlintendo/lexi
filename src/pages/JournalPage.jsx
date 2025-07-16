@@ -16,6 +16,7 @@ import LanguageSheet from '../components/LanguageSheet';
 import bookSavedIcon from '../assets/icons/book-saved.svg';
 import { useUser } from '../hooks/useAuth';
 import BottomNav from '../components/BottomNav';
+import { getChatCompletion } from '../openai';
 
 // Lucide placeholders for missing icons
 const JournalIcon = (props) => (
@@ -55,11 +56,27 @@ function getDateKey(date) {
 
 const STORAGE_KEY = 'lexi-journal-entries';
 
+function getDynamicPrompt(selectedDate, journalEntries, language) {
+  const todayKey = getDateKey(selectedDate);
+  const yesterday = new Date(selectedDate);
+  yesterday.setDate(selectedDate.getDate() - 1);
+  const yesterdayKey = getDateKey(yesterday);
+  const entryToday = journalEntries[todayKey];
+  const entryYesterday = journalEntries[yesterdayKey];
+  if (entryYesterday && !entryToday) {
+    return `Yesterday you wrote: "${entryYesterday.slice(0, 60)}..." How are you feeling today?`;
+  } else if (!entryYesterday && !entryToday) {
+    return `It's a new day! What would you like to write about today?`;
+  } else if (entryToday) {
+    return `Great job writing today! Want to add more or reflect on something else?`;
+  }
+  return PROMPT_BUBBLES[language] || PROMPT_BUBBLES['fr'];
+}
+
 export default function JournalPage() {
   const today = new Date();
   const [selectedDate, setSelectedDate] = useState(today);
   const [journalEntries, setJournalEntries] = useState({}); // { 'YYYY-MM-DD': 'entry text' }
-  const [lang, setLang] = useState('fr');
   const [search, setSearch] = useState('');
   const [text, setText] = useState('');
   const navigate = useNavigate();
@@ -144,7 +161,8 @@ export default function JournalPage() {
   const handleTextChange = (e) => {
     setText(e.target.value);
     setJournalInput(e.target.value); // <-- update context
-    // Remove: setJournalEntries((prev) => ({ ...prev, [selectedKey]: e.target.value }));
+    setJournalEntries((prev) => ({ ...prev, [selectedKey]: e.target.value }));
+    
     // Auto-resize textarea
     const textarea = e.target;
     textarea.style.height = 'auto';
@@ -196,8 +214,45 @@ export default function JournalPage() {
     setShowDialog(false);
   };
 
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiPromptLoading, setAiPromptLoading] = useState(false);
+
+  useEffect(() => {
+    // Get last 3-5 entries before selectedDate
+    const allKeys = Object.keys(journalEntries).sort();
+    const selectedKey = getDateKey(selectedDate);
+    const prevKeys = allKeys.filter(k => k < selectedKey).slice(-5);
+    const prevEntries = prevKeys.map(k => `Entry for ${k}: ${journalEntries[k]}`).join('\n');
+    if (prevEntries) {
+      setAiPromptLoading(true);
+      getChatCompletion(
+        `You are a friendly language learning coach. ONLY reply with a single, short, motivating prompt for the user's next journal entry, in ${language}. Do NOT include corrections, vocabulary, or any other sections. Here are my last few journal entries:\n${prevEntries}\nWrite the prompt in ${language}.`
+      ).then(res => {
+        setAiPrompt(res.trim());
+      }).catch(() => setAiPrompt('')).finally(() => setAiPromptLoading(false));
+    } else {
+      setAiPrompt('');
+    }
+  }, [selectedDate, journalEntries, language]);
+
+  // Track last chosen language for fallback
+  const [lastLanguage, setLastLanguage] = useState(language);
+  useEffect(() => {
+    if (language) setLastLanguage(language);
+  }, [language]);
+
+  // Debug output
+  useEffect(() => {
+    console.log('Current language:', language, 'Last language:', lastLanguage, 'aiPrompt:', aiPrompt, 'aiPromptLoading:', aiPromptLoading);
+  }, [language, lastLanguage, aiPrompt, aiPromptLoading]);
+
   return (
     <div className="journal-bg">
+      {/* Debug output for UI */}
+      <div style={{ position: 'absolute', top: 0, right: 0, background: '#fffbe6', color: '#7A54FF', fontSize: 12, padding: 4, zIndex: 9999 }}>
+        lang: {language} | last: {lastLanguage} | loading: {String(aiPromptLoading)}<br />
+        prompt: {aiPrompt || '[none]'}
+      </div>
       {/* Top Section */}
       <div className="journal-header-flex">
         <div className="weekdays-row-centered" style={{ display: 'flex', justifyContent: 'flex-start', gap: 20 }}>
@@ -415,7 +470,9 @@ export default function JournalPage() {
         ) : (
           <>
             <div className="prompt-bubble">
-              {PROMPT_BUBBLES[language] || PROMPT_BUBBLES['fr']}
+              {aiPromptLoading
+                ? 'Lexi is thinking of a prompt...'
+                : aiPrompt || PROMPT_BUBBLES[lastLanguage] || PROMPT_BUBBLES['fr']}
             </div>
             <textarea
               className="journal-textarea"
@@ -433,23 +490,7 @@ export default function JournalPage() {
         <div style={{ marginBottom: 120 }}>
           <ChatActionsRow
             onSpeak={() => navigate('/voice-journal')}
-            onSend={() => {
-              // Mark entry as completed for selected date
-              setJournalEntries(prev => ({ ...prev, [selectedKey]: text.trim() }));
-              // Add the current text as a user message to localStorage
-              const stored = localStorage.getItem('lexi-chat-messages');
-              let messages = [];
-              if (stored) {
-                try {
-                  messages = JSON.parse(stored);
-                } catch {}
-              }
-              if (text.trim()) {
-                messages.push({ sender: 'user', text: text.trim(), timestamp: new Date() });
-                localStorage.setItem('lexi-chat-messages', JSON.stringify(messages));
-              }
-              navigate('/chat');
-            }}
+            onSend={() => navigate('/chat')}
             onImage={() => {}}
             sendDisabled={false}
           />

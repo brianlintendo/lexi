@@ -4,7 +4,7 @@ import arrowLeftIcon from '../assets/icons/arrow-left.svg';
 import bookIcon from '../assets/icons/book.svg';
 import themesIcon from '../assets/icons/themes.svg';
 
-export default function ChatHeader({ wordCount = 0, wordLimit = 200, onBack }) {
+export default function ChatHeader({ wordCount = 0, wordLimit = 200, onBack, onThemesClick }) {
   const navigate = useNavigate();
   const percent = Math.min(100, (wordCount / wordLimit) * 100);
   return (
@@ -24,7 +24,7 @@ export default function ChatHeader({ wordCount = 0, wordLimit = 200, onBack }) {
           <button aria-label="Book" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
             <img src={bookIcon} alt="Book" style={{ width: 28, height: 28 }} />
           </button>
-          <button aria-label="Themes" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          <button aria-label="Themes" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} onClick={onThemesClick}>
             <img src={themesIcon} alt="Themes" style={{ width: 28, height: 28 }} />
           </button>
         </div>

@@ -6,6 +6,9 @@ import ChatActionsRow from '../components/ChatActionsRow';
 import ChatHeader from '../components/ChatHeader';
 import { useJournal } from '../components/JournalContext';
 import { useNavigate } from 'react-router-dom';
+import themesIcon from '../assets/icons/themes.svg';
+import PromptsPage from './PromptsPage';
+import { useLocation } from 'react-router-dom';
 
 const PROMPTS = {
   en: `Hello! I'm Lexi. Ready to write in English? How are you feeling today?`,
@@ -24,6 +27,17 @@ const SYSTEM_PROMPTS = {
   it: `Sei un tutor di lingua amichevole e leggermente spiritoso. Quando l'utente invia una frase o un breve testo in qualsiasi lingua: 1. Ripeti il testo originale (tra virgolette). 2. Offri una correzione gentile e giocosa: segnala errori di grammatica o lessico, riscrivi la frase correttamente e aggiungi una battuta simpatica. 3. Spiega brevemente la correzione principale in termini semplici. 4. Fai una domanda di follow-up naturale. Rispondi sempre prima nella lingua di destinazione dell'utente e aggiungi una breve nota in inglese solo se strettamente necessario. Mantieni un tono allegro, incoraggiante e divertente.`
 };
 
+const THEME_OPTIONS = [
+  'Travel',
+  'Family',
+  'Language Learning',
+  'Health & Mental',
+  'What if...?',
+  'Something crazy',
+  'Technology & Gadgets',
+  'Challenges & Goals',
+];
+
 const initialMessages = [
   { sender: 'ai', text: 'Bonjour ! Je suis Lexi. Pose-moi une question ou commence à discuter en français !', timestamp: new Date() }
 ];
@@ -31,6 +45,7 @@ const initialMessages = [
 export default function ChatPage() {
   const { journalInput, language } = useJournal();
   const navigate = useNavigate();
+  const location = useLocation();
   const [input, setInput] = useState(journalInput || '');
   const [messages, setMessages] = useState(() => {
     const stored = localStorage.getItem('lexi-chat-messages');
@@ -53,6 +68,8 @@ export default function ChatPage() {
   const [recording, setRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const [showThemeModal, setShowThemeModal] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState(null);
 
   // Track previous language for confirmation
   const prevLanguageRef = useRef(language);
@@ -113,6 +130,30 @@ export default function ChatPage() {
     // eslint-disable-next-line
   }, [language]);
 
+  // If coming back from PromptsPage with a selected theme
+  useEffect(() => {
+    if (location.state && location.state.selectedTheme) {
+      const selectedTheme = location.state.selectedTheme;
+      // Clear the state so it doesn't trigger again
+      navigate(location.pathname, { replace: true, state: {} });
+      // Generate a prompt for the selected theme (same as handleThemeSave)
+      (async () => {
+        const prompt = `Theme: ${selectedTheme}\nLanguage: ${language}`;
+        const systemPrompt = `You are a friendly language tutor. ONLY reply with a single, short, motivating question or prompt about the given theme for the user to journal or chat about, in the target language. Do NOT include corrections, vocabulary, or any other sections. Example: What is your favorite travel memory?`;
+        let aiText = '';
+        try {
+          aiText = await getChatCompletion(prompt, systemPrompt);
+        } catch (err) {
+          console.error('AI error:', err);
+        }
+        if (!aiText || !aiText.trim()) {
+          aiText = `Let's talk about ${selectedTheme.toLowerCase()}! What's something interesting you can share?`;
+        }
+        setMessages(prev => [...prev, { sender: 'ai', text: aiText.trim(), timestamp: new Date() }]);
+      })();
+    }
+  }, [location.state, language, navigate, location.pathname]);
+
   const handleNewConversation = () => {
     if (window.confirm('Start a new conversation? This will clear your current chat history.')) {
       setMessages([
@@ -156,6 +197,35 @@ export default function ChatPage() {
     }
   };
 
+  // Handle theme save
+  const handleThemeSave = async () => {
+    if (!selectedTheme) return;
+    setShowThemeModal(false);
+    setSelectedTheme(null);
+    // Generate a prompt for the selected theme
+    const prompt = `Theme: ${selectedTheme}\nLanguage: ${language}`;
+    const systemPrompt = `You are a friendly language tutor. ONLY reply with a single, short, motivating question or prompt about the given theme for the user to journal or chat about, in the target language. Do NOT include corrections, vocabulary, or any other sections. Example: What is your favorite travel memory?`;
+    // Debug: log the prompt and systemPrompt
+    console.log('Theme prompt:', prompt);
+    console.log('Theme systemPrompt:', systemPrompt);
+    let aiText = '';
+    try {
+      aiText = await getChatCompletion(prompt, systemPrompt);
+      console.log('Theme AI prompt response:', aiText);
+    } catch (err) {
+      console.error('AI error:', err);
+    }
+    if (!aiText || !aiText.trim()) {
+      aiText = `Let's talk about ${selectedTheme.toLowerCase()}! What's something interesting you can share?`;
+      console.warn('AI returned empty, using fallback:', aiText);
+    }
+    setMessages(prev => {
+      const newMessages = [...prev, { sender: 'ai', text: aiText.trim(), timestamp: new Date() }];
+      console.log('Messages after theme prompt:', newMessages);
+      return newMessages;
+    });
+  };
+
   // Calculate word count from all user messages and current input
   const wordLimit = 200;
   const userWords = messages.filter(m => m.sender === 'user').map(m => m.text).join(' ') + ' ' + input;
@@ -163,7 +233,8 @@ export default function ChatPage() {
 
   return (
     <div className="chat-bg" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <ChatHeader wordCount={wordCount} wordLimit={wordLimit} />
+      <ChatHeader wordCount={wordCount} wordLimit={wordLimit} onThemesClick={() => navigate('/prompts')} />
+      {/* Theme Modal removed, now handled by PromptsPage route */}
       <div className="chat-messages" style={{ flex: 1, overflowY: 'auto', padding: '1rem', background: '#fafaff' }}>
         <button
           onClick={handleNewConversation}

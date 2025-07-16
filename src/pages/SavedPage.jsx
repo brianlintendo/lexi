@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import arrowLeft from '../assets/icons/arrow-left.svg';
+import TopNavHeader from '../components/TopNavHeader';
 import volumeIcon from '../assets/icons/volume.svg';
 import { fetchSavedPhrases, removeSavedPhrase } from '../api/savedPhrases';
 import { useUser } from '../hooks/useAuth';
@@ -82,12 +82,7 @@ export default function SavedPage() {
   if (loading) {
     return (
       <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: '#fafaff', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', alignItems: 'center', padding: '18px 0 12px 0', borderBottom: '1px solid #eee', background: '#fff', position: 'sticky', top: 0, zIndex: 10, gap: 12 }}>
-          <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', marginLeft: 12, marginRight: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', height: 36 }}>
-            <img src={arrowLeft} alt="Back" style={{ width: 28, height: 28 }} />
-          </button>
-          <span style={{ fontWeight: 700, fontSize: 22, color: '#7A54FF', flex: 1 }}>Saved Phrases</span>
-        </div>
+        <TopNavHeader title="Saved Phrases" onBack={() => navigate(-1)} />
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ color: '#888', fontStyle: 'italic' }}>Loading...</div>
         </div>
@@ -97,12 +92,7 @@ export default function SavedPage() {
 
   return (
     <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: '#fafaff', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', padding: '18px 0 12px 0', borderBottom: '1px solid #eee', background: '#fff', position: 'sticky', top: 0, zIndex: 10, gap: 12 }}>
-        <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', marginLeft: 12, marginRight: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', height: 36 }}>
-          <img src={arrowLeft} alt="Back" style={{ width: 28, height: 28 }} />
-        </button>
-        <span style={{ fontWeight: 700, fontSize: 22, color: '#7A54FF', flex: 1 }}>Saved Phrases</span>
-      </div>
+      <TopNavHeader title="Saved Phrases" onBack={() => navigate(-1)} />
       <div style={{ flex: 1, padding: '24px 18px 0 18px' }}>
         {!user?.id ? (
           <div style={{ color: '#888', fontStyle: 'italic', marginTop: 40, textAlign: 'center' }}>Please sign in to view saved phrases.</div>

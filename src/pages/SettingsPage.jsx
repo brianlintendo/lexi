@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../hooks/useAuth';
 import BottomNav from '../components/BottomNav';
+import TopNavHeader from '../components/TopNavHeader';
 
 function SettingsPage() {
   const navigate = useNavigate();
@@ -34,11 +35,7 @@ function SettingsPage() {
 
   return (
     <div className="container">
-      <div className="header">
-        <span className="header-icon" onClick={() => navigate('/')}>←</span>
-        <span className="header-title">Settings</span>
-        <span></span>
-      </div>
+      <TopNavHeader title="Settings" onBack={() => navigate(-1)} />
       
       <div style={{ flex: 1, padding: 'var(--spacing-xl)' }}>
         {/* Authentication Section */}
