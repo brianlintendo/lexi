@@ -490,7 +490,7 @@ export default function JournalPage() {
         <div style={{ marginBottom: 120 }}>
           <ChatActionsRow
             onSpeak={() => navigate('/voice-journal')}
-            onSend={() => navigate('/chat')}
+            onSend={() => navigate('/chat', { state: { journalEntry: text } })}
             onImage={() => {}}
             sendDisabled={false}
           />

@@ -154,6 +154,17 @@ export default function ChatPage() {
     }
   }, [location.state, language, navigate, location.pathname]);
 
+  // Handle incoming journal entry from JournalPage
+  useEffect(() => {
+    if (location.state && location.state.journalEntry && location.state.journalEntry.trim()) {
+      const journalEntry = location.state.journalEntry;
+      // Clear the state so it doesn't trigger again
+      navigate(location.pathname, { replace: true, state: {} });
+      // Add the journal entry as a user message, which will trigger the auto-reply effect
+      setMessages(prev => [...prev, { sender: 'user', text: journalEntry, timestamp: new Date() }]);
+    }
+  }, [location.state, navigate, location.pathname]);
+
   const handleNewConversation = () => {
     if (window.confirm('Start a new conversation? This will clear your current chat history.')) {
       setMessages([
