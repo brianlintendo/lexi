@@ -61,6 +61,40 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Auto-reply if last message is from user and not yet answered by AI
+  useEffect(() => {
+    if (messages.length > 0 && !loading) {
+      const last = messages[messages.length - 1];
+      // If last message is from user and no AI after it
+      if (last.sender === 'user' && (messages.length === 1 || messages[messages.length - 2].sender !== 'ai')) {
+        (async () => {
+          setLoading(true);
+          try {
+            const aiText = await getChatCompletion(last.text);
+            setMessages(prev => [...prev, { sender: 'ai', text: aiText, timestamp: new Date() }]);
+            // OpenAI TTS integration
+            try {
+              const followupMatch = aiText.match(/\*\*Follow-up:\*\*[\s\n]*([\s\S]*)/i);
+              const followupText = followupMatch ? followupMatch[1].trim() : '';
+              if (followupText) {
+                const audioUrl = await openaiTTS(followupText, 'fable');
+                const audio = new Audio(audioUrl);
+                audio.play();
+              }
+            } catch (ttsErr) {
+              console.error('TTS error:', ttsErr);
+            }
+          } catch (err) {
+            setMessages(prev => [...prev, { sender: 'ai', text: 'Sorry, there was an error contacting Lexi. Please try again.', timestamp: new Date() }]);
+          } finally {
+            setLoading(false);
+          }
+        })();
+      }
+    }
+    // eslint-disable-next-line
+  }, [messages]);
+
   useEffect(() => {
     localStorage.setItem('lexi-chat-messages', JSON.stringify(messages));
   }, [messages]);
@@ -95,28 +129,7 @@ export default function ChatPage() {
     const userMsg = { sender: 'user', text: input, timestamp: new Date() };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
-    setLoading(true);
-    try {
-      const aiText = await getChatCompletion(input);
-      setMessages(prev => [...prev, { sender: 'ai', text: aiText, timestamp: new Date() }]);
-      // OpenAI TTS integration
-      try {
-        // Extract only the Follow-up section
-        const followupMatch = aiText.match(/\*\*Follow-up:\*\*[\s\n]*([\s\S]*)/i);
-        const followupText = followupMatch ? followupMatch[1].trim() : '';
-        if (followupText) {
-          const audioUrl = await openaiTTS(followupText, 'fable');
-          const audio = new Audio(audioUrl);
-          audio.play();
-        }
-      } catch (ttsErr) {
-        console.error('TTS error:', ttsErr);
-      }
-    } catch (err) {
-      setMessages(prev => [...prev, { sender: 'ai', text: 'Sorry, there was an error contacting Lexi. Please try again.', timestamp: new Date() }]);
-    } finally {
-      setLoading(false);
-    }
+    // Remove AI response logic from here; useEffect will handle it
   };
 
   const handleSpeak = async () => {

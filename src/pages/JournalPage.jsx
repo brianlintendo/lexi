@@ -144,8 +144,7 @@ export default function JournalPage() {
   const handleTextChange = (e) => {
     setText(e.target.value);
     setJournalInput(e.target.value); // <-- update context
-    setJournalEntries((prev) => ({ ...prev, [selectedKey]: e.target.value }));
-    
+    // Remove: setJournalEntries((prev) => ({ ...prev, [selectedKey]: e.target.value }));
     // Auto-resize textarea
     const textarea = e.target;
     textarea.style.height = 'auto';
@@ -434,7 +433,23 @@ export default function JournalPage() {
         <div style={{ marginBottom: 120 }}>
           <ChatActionsRow
             onSpeak={() => navigate('/voice-journal')}
-            onSend={() => navigate('/chat')}
+            onSend={() => {
+              // Mark entry as completed for selected date
+              setJournalEntries(prev => ({ ...prev, [selectedKey]: text.trim() }));
+              // Add the current text as a user message to localStorage
+              const stored = localStorage.getItem('lexi-chat-messages');
+              let messages = [];
+              if (stored) {
+                try {
+                  messages = JSON.parse(stored);
+                } catch {}
+              }
+              if (text.trim()) {
+                messages.push({ sender: 'user', text: text.trim(), timestamp: new Date() });
+                localStorage.setItem('lexi-chat-messages', JSON.stringify(messages));
+              }
+              navigate('/chat');
+            }}
             onImage={() => {}}
             sendDisabled={false}
           />
