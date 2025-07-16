@@ -1,7 +1,7 @@
-import React from 'react';
-import BottomSheet from './BottomSheet';
-import { addSavedPhrase, checkPhraseExists } from '../api/savedPhrases';
+import React, { useState, useEffect } from 'react';
+import SavedPhraseSheet from './SavedPhraseSheet';
 import { useUser } from '../hooks/useAuth';
+import { addSavedPhrase, checkPhraseExists } from '../api/savedPhrases';
 
 function highlightCorrections(userText, aiText) {
   // Simple word diff: highlight words in aiText that are not in userText
@@ -20,37 +20,8 @@ function highlightCorrections(userText, aiText) {
 export default function ChatBubble({ sender, text, loading, userText }) {
   // Always use Albert Sans for AI
   const fontFamily = 'Albert Sans, sans-serif';
-  const [showPhraseSheet, setShowPhraseSheet] = React.useState(false);
-  const [phraseData, setPhraseData] = React.useState({ phrase: '', translation: '' });
-  const [isSaved, setIsSaved] = React.useState(false);
-  const { user } = useUser();
-
-  const handleAddToSaved = async () => {
-    if (!user?.id) {
-      alert('Please sign in to save phrases');
-      return;
-    }
-
-    try {
-      // Check if phrase already exists
-      const exists = await checkPhraseExists(user.id, phraseData.phrase);
-      if (exists) {
-        setIsSaved(true);
-        return;
-      }
-
-      // Add the phrase
-      const result = await addSavedPhrase(user.id, phraseData.phrase, phraseData.translation);
-      if (result) {
-        setIsSaved(true);
-      } else {
-        alert('Failed to save phrase. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error saving phrase:', error);
-      alert('Failed to save phrase. Please try again.');
-    }
-  };
+  const [showPhraseSheet, setShowPhraseSheet] = useState(false);
+  const [phraseData, setPhraseData] = useState({ phrase: '', translation: '' });
 
   if (loading) {
     if (sender === 'ai') {
@@ -223,27 +194,15 @@ export default function ChatBubble({ sender, text, loading, userText }) {
           </div>
         </div>
         {showPhraseSheet && (
-          <BottomSheet>
-            <div style={{ width: '100%', textAlign: 'center' }}>
-              <div style={{ fontSize: 24, fontWeight: 700, color: '#7A54FF', marginBottom: 10, letterSpacing: 0.5 }}>{phraseData.phrase}</div>
-              {phraseData.translation && (
-                <div style={{ fontSize: 17, color: '#444', marginBottom: 18 }}>{phraseData.translation}</div>
-              )}
-              <button
-                onClick={handleAddToSaved}
-                style={{ marginTop: 8, marginBottom: 12, background: isSaved ? '#b2dfdb' : '#eee', border: 'none', borderRadius: 8, padding: '10px 24px', fontWeight: 600, fontSize: 15, cursor: isSaved ? 'not-allowed' : 'pointer', color: '#7A54FF' }}
-                disabled={isSaved}
-              >
-                {isSaved ? 'Added!' : 'Add to Saved Phrases'}
-              </button>
-              <button
-                onClick={() => setShowPhraseSheet(false)}
-                style={{ background: '#eee', border: 'none', borderRadius: 8, padding: '10px 24px', fontWeight: 600, fontSize: 15, cursor: 'pointer', color: '#7A54FF' }}
-              >
-                Close
-              </button>
-            </div>
-          </BottomSheet>
+          <SavedPhraseSheet 
+            isOpen={showPhraseSheet}
+            onClose={() => setShowPhraseSheet(false)}
+            phraseData={phraseData}
+            onPhraseAdded={(result) => {
+              // Handle phrase added callback if needed
+              console.log('Phrase added:', result);
+            }}
+          />
         )}
       </>
     );

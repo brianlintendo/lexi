@@ -5,6 +5,7 @@ import sendIcon from '../assets/icons/send.svg';
 import imageIcon from '../assets/icons/image.svg';
 import savedIcon from '../assets/icons/saved.svg';
 import accountIcon from '../assets/icons/account.svg';
+import moreIcon from '../assets/icons/more.svg';
 import { useNavigate } from 'react-router-dom';
 import ChatBubble from '../components/ChatBubble';
 import BottomSheet from '../components/BottomSheet';
@@ -14,7 +15,7 @@ import { useJournal } from '../components/JournalContext';
 import LanguageSheet from '../components/LanguageSheet';
 import bookSavedIcon from '../assets/icons/book-saved.svg';
 import { useUser } from '../hooks/useAuth';
-import { fetchSavedPhrases, addSavedPhrase, removeSavedPhrase, checkPhraseExists } from '../api/savedPhrases';
+
 // Lucide placeholders for missing icons
 const JournalIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg>
@@ -143,6 +144,11 @@ export default function JournalPage() {
     setText(e.target.value);
     setJournalInput(e.target.value); // <-- update context
     setJournalEntries((prev) => ({ ...prev, [selectedKey]: e.target.value }));
+    
+    // Auto-resize textarea
+    const textarea = e.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
   };
 
   // When clicking a date, set as selected and load its entry
@@ -170,79 +176,24 @@ export default function JournalPage() {
   };
 
   // Saved Words Feature
-  const [savedWords, setSavedWords] = useState([]);
-  const [newWord, setNewWord] = useState('');
-  const [loading, setLoading] = useState(true);
   const [showCompletedEntry, setShowCompletedEntry] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
 
-  const loadSavedPhrases = async () => {
-    if (!user?.id) {
-      setSavedWords([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const phrases = await fetchSavedPhrases(user.id);
-      setSavedWords(phrases);
-    } catch (error) {
-      console.error('Error loading saved phrases:', error);
-      setSavedWords([]);
-    } finally {
-      setLoading(false);
-    }
+  const handleEdit = () => {
+    setShowCompletedEntry(false);
+    setShowDialog(false);
   };
 
-  useEffect(() => {
-    loadSavedPhrases();
-  }, [user?.id]);
-
-  // Reload when page gains focus
-  useEffect(() => {
-    const handleFocus = () => loadSavedPhrases();
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [user?.id]);
-
-  const addWord = async () => {
-    if (!newWord.trim() || !user?.id) return;
-
-    try {
-      // Check if phrase already exists
-      const exists = await checkPhraseExists(user.id, newWord.trim());
-      if (exists) {
-        setNewWord('');
-        return;
-      }
-
-      // Add the phrase
-      const result = await addSavedPhrase(user.id, newWord.trim(), '');
-      if (result) {
-        setSavedWords(prev => [result, ...prev]);
-        setNewWord('');
-      } else {
-        alert('Failed to save phrase. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error adding phrase:', error);
-      alert('Failed to save phrase. Please try again.');
-    }
-  };
-
-  const removeWord = async (phraseId) => {
-    if (!user?.id) return;
-
-    try {
-      const success = await removeSavedPhrase(user.id, phraseId);
-      if (success) {
-        setSavedWords(prev => prev.filter(item => item.id !== phraseId));
-      } else {
-        alert('Failed to remove phrase. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error removing phrase:', error);
-      alert('Failed to remove phrase. Please try again.');
-    }
+  const handleDelete = () => {
+    const todayKey = getDateKey(new Date());
+    setJournalEntries(prev => {
+      const updated = { ...prev };
+      delete updated[todayKey];
+      return updated;
+    });
+    setText('');
+    setShowCompletedEntry(false);
+    setShowDialog(false);
   };
 
   return (
@@ -324,43 +275,102 @@ export default function JournalPage() {
 
       {/* Main Content */}
       <div className="journal-main">
-        <div className="date-heading">{formatDateHeading(selectedDate)}</div>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          marginBottom: '16px',
+          position: 'relative'
+        }}>
+          <div className="date-heading">{formatDateHeading(selectedDate)}</div>
+          {showCompletedEntry && text && (
+            <div style={{ position: 'relative' }}>
+              <img 
+                src={moreIcon} 
+                alt="More options" 
+                style={{ 
+                  width: '20px', 
+                  height: '20px', 
+                  cursor: 'pointer',
+                  opacity: 0.7
+                }}
+                onClick={() => setShowDialog(!showDialog)}
+              />
+              
+              {/* Dialog box */}
+              {showDialog && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: '0',
+                  backgroundColor: '#fff',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  border: '1px solid #E0E0E0',
+                  zIndex: 1000,
+                  marginTop: '8px',
+                  overflow: 'hidden',
+                  minWidth: '120px'
+                }}>
+                  <div 
+                    style={{
+                      padding: '12px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid #F0F0F0'
+                    }}
+                    onClick={handleEdit}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    <span style={{ color: '#212121', fontSize: '14px' }}>Edit</span>
+                  </div>
+                  <div 
+                    style={{
+                      padding: '12px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      cursor: 'pointer'
+                    }}
+                    onClick={handleDelete}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 6h18"/>
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                    <span style={{ color: '#D32F2F', fontSize: '14px' }}>Delete</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         {/* Show completed journal entry */}
         {showCompletedEntry && text ? (
-          <div style={{ 
-            width: '100%', 
+          <div style={{
+            color: 'var(--Text-Text-Dark, #1C1C1C)',
+            fontFamily: 'Albert Sans',
+            fontSize: '18px',
+            fontStyle: 'normal',
+            fontWeight: 400,
+            lineHeight: '28px',
+            whiteSpace: 'pre-wrap',
             margin: '24px 0 0 0',
-            padding: '24px',
-            backgroundColor: '#fff',
-            borderRadius: '16px',
-            border: '1px solid #E0E0E0',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}>
-            <h3 style={{ 
-              color: '#7A54FF', 
-              fontWeight: 700, 
-              fontSize: '18px',
-              marginBottom: '16px',
-              marginTop: 0
-            }}>
-              Journal Entry
-            </h3>
-            <div style={{
-              fontSize: '16px',
-              lineHeight: '1.6',
-              color: '#212121',
-              whiteSpace: 'pre-wrap',
-              fontFamily: 'inherit'
-            }}>
-              {text.split('\n\n').map((paragraph, index) => (
-                <p key={index} style={{
-                  margin: index > 0 ? '16px 0 0 0' : '0 0 16px 0',
-                  padding: 0
-                }}>
-                  {paragraph}
-                </p>
-              ))}
-            </div>
+            {text.split('\n\n').map((paragraph, index) => (
+              <p key={index} style={{
+                margin: index > 0 ? '16px 0 0 0' : '0 0 16px 0',
+                padding: 0
+              }}>
+                {paragraph}
+              </p>
+            ))}
           </div>
         ) : chatPreview ? (
           <>
@@ -412,6 +422,7 @@ export default function JournalPage() {
               placeholder={PLACEHOLDERS[language] || PLACEHOLDERS['fr']}
               value={text}
               onChange={handleTextChange}
+              style={{ height: 'auto', minHeight: '40px' }}
             />
           </>
         )}
@@ -426,25 +437,6 @@ export default function JournalPage() {
             onImage={() => {}}
             sendDisabled={false}
           />
-          {/* Render saved words list for testing */}
-          <div style={{ marginTop: 32 }}>
-            <h3 style={{ fontWeight: 700, color: '#7A54FF', marginBottom: 8 }}>Saved Words (Test)</h3>
-            {!user?.id ? (
-              <div style={{ color: '#888', fontStyle: 'italic', textAlign: 'center' }}>Please sign in to view saved phrases.</div>
-            ) : loading ? (
-              <div style={{ color: '#888', fontStyle: 'italic', textAlign: 'center' }}>Loading...</div>
-            ) : (
-              <ul style={{ listStyle: 'none', padding: 0 }}>
-                {savedWords.map((item) => (
-                  <li key={item.id} style={{ background: '#f3f0ff', borderRadius: 8, padding: '8px 12px', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 600 }}>{item.phrase}</span>
-                    {item.translation && <span style={{ color: '#888', marginLeft: 8, fontSize: 14 }}>{item.translation}</span>}
-                    <button onClick={() => removeWord(item.id)} style={{ marginLeft: 12, background: 'none', border: 'none', color: '#D32F2F', fontWeight: 700, cursor: 'pointer' }}>Remove</button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
         </div>
       )}
 
