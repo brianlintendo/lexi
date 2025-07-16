@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import '../styles/global.css';
-import { getChatCompletion, transcribeWithWhisper, elevenLabsTTS } from '../openai';
+import { getChatCompletion, transcribeWithWhisper, openaiTTS } from '../openai';
 import ChatBubble from '../components/ChatBubble';
 import ChatActionsRow from '../components/ChatActionsRow';
 import ChatHeader from '../components/ChatHeader';
 import { useJournal } from '../components/JournalContext';
+import { useNavigate } from 'react-router-dom';
 
 const PROMPTS = {
   en: `Hello! I'm Lexi. Ready to write in English? How are you feeling today?`,
@@ -29,6 +30,7 @@ const initialMessages = [
 
 export default function ChatPage() {
   const { journalInput, language } = useJournal();
+  const navigate = useNavigate();
   const [input, setInput] = useState(journalInput || '');
   const [messages, setMessages] = useState(() => {
     const stored = localStorage.getItem('lexi-chat-messages');
@@ -97,19 +99,16 @@ export default function ChatPage() {
     try {
       const aiText = await getChatCompletion(input);
       setMessages(prev => [...prev, { sender: 'ai', text: aiText, timestamp: new Date() }]);
-      // ElevenLabs TTS integration
+      // OpenAI TTS integration
       try {
-        const elevenLabsVoices = {
-          en: 'EXAVITQu4vr4xnSDxMaL',
-          es: 'TxGEqnHWrfWFTfGW9XjX',
-          fr: 'ErXwobaYiN019PkySvjV',
-          zh: 'D38z5RcWu1voky8WS1ja', // Example, replace with actual Chinese voice if available
-          pt: 'MF3mGyEYCl7XYWbV9V6O',
-          it: 'zcAOhNBS3c14rBihAFp1',
-        };
-        const audioUrl = await elevenLabsTTS(aiText, elevenLabsVoices[language] || elevenLabsVoices['fr'], language);
-        const audio = new Audio(audioUrl);
-        audio.play();
+        // Extract only the Follow-up section
+        const followupMatch = aiText.match(/\*\*Follow-up:\*\*[\s\n]*([\s\S]*)/i);
+        const followupText = followupMatch ? followupMatch[1].trim() : '';
+        if (followupText) {
+          const audioUrl = await openaiTTS(followupText, 'fable');
+          const audio = new Audio(audioUrl);
+          audio.play();
+        }
       } catch (ttsErr) {
         console.error('TTS error:', ttsErr);
       }
@@ -211,7 +210,7 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
       <ChatActionsRow
-        onSpeak={handleSpeak}
+        onSpeak={() => navigate('/voice-journal')}
         onSend={handleSend}
         onImage={() => {}}
         sendDisabled={!input.trim() || loading}

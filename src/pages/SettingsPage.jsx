@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../hooks/useAuth';
+import BottomNav from '../components/BottomNav';
 
 function SettingsPage() {
   const navigate = useNavigate();
@@ -222,6 +223,8 @@ function SettingsPage() {
           </button>
         </div>
       </div>
+      {/* Persistent Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 }

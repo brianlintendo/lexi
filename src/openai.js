@@ -55,7 +55,7 @@ export async function getChatCompletion(userText, systemMessage = `
   Always respond in the user's target language first, and — only if absolutely needed — add a very brief English note in parentheses for clarity. Keep your tone upbeat, encouraging, and fun.
 `) {
   const response = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo",
+    model: "gpt-4-1106-preview",
     messages: [
       {
         role: "system",
@@ -93,27 +93,24 @@ export async function transcribeWithWhisper(audioBlob, language = 'fr') {
   return data.text;
 }
 
-export async function elevenLabsTTS(text, voiceId = "EXAVITQu4vr4xnSDxMaL", language = "fr") {
-  const apiKey = import.meta.env.VITE_ELEVENLABS_KEY;
-
-  const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-    method: "POST",
+export async function openaiTTS(text, voice = 'nova', model = 'tts-1', format = 'mp3') {
+  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+  const response = await fetch('https://api.openai.com/v1/audio/speech', {
+    method: 'POST',
     headers: {
-      "xi-api-key": apiKey,
-      "Content-Type": "application/json"
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      text,
-      model_id: "eleven_multilingual_v2",
-      voice_settings: {
-        stability: 0.5,
-        similarity_boost: 0.8
-      }
+      model,
+      input: text,
+      voice,
+      response_format: format
     })
   });
 
   if (!response.ok) {
-    throw new Error("Failed to generate speech");
+    throw new Error('OpenAI TTS failed');
   }
 
   const audioBlob = await response.blob();

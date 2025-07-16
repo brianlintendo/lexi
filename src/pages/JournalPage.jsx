@@ -15,6 +15,7 @@ import { useJournal } from '../components/JournalContext';
 import LanguageSheet from '../components/LanguageSheet';
 import bookSavedIcon from '../assets/icons/book-saved.svg';
 import { useUser } from '../hooks/useAuth';
+import BottomNav from '../components/BottomNav';
 
 // Lucide placeholders for missing icons
 const JournalIcon = (props) => (
@@ -432,7 +433,7 @@ export default function JournalPage() {
       {!chatPreview && (
         <div style={{ marginBottom: 120 }}>
           <ChatActionsRow
-            onSpeak={() => {}}
+            onSpeak={() => navigate('/voice-journal')}
             onSend={() => navigate('/chat')}
             onImage={() => {}}
             sendDisabled={false}
@@ -440,34 +441,8 @@ export default function JournalPage() {
         </div>
       )}
 
-      {/* Tab Bar (bottom nav) - always present, rounded top corners */}
-      <div className="tab-bar" style={{
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32,
-        boxShadow: '0 -2px 16px 0 rgba(122,84,255,0.06)',
-        background: '#fff',
-        position: 'fixed',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 99,
-        maxWidth: 480,
-        margin: '0 auto',
-        display: 'flex',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        height: 72,
-      }}>
-        <button onClick={() => navigate('/journal')} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-          <img src={bookSavedIcon} alt="Journal" style={{ width: 28, height: 28 }} />
-        </button>
-        <button onClick={() => navigate('/saved')} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-          <img src={savedIcon} alt="Saved Words" style={{ width: 28, height: 28 }} />
-        </button>
-        <button onClick={() => navigate('/settings')} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-          <img src={accountIcon} alt="Account" style={{ width: 28, height: 28 }} />
-        </button>
-      </div>
+      {/* Tab Bar (bottom nav) - always present, rounded pill */}
+      <BottomNav />
       <LanguageSheet
         open={showLangSheet}
         onClose={() => setShowLangSheet(false)}

@@ -4,6 +4,8 @@ import arrowLeft from '../assets/icons/arrow-left.svg';
 import volumeIcon from '../assets/icons/volume.svg';
 import { fetchSavedPhrases, removeSavedPhrase } from '../api/savedPhrases';
 import { useUser } from '../hooks/useAuth';
+import BottomNav from '../components/BottomNav';
+import { openaiTTS } from '../openai';
 
 function detectLang(text) {
   // Simple heuristic: if contains accented chars or common French words, return 'fr', else 'en'
@@ -64,10 +66,17 @@ export default function SavedPage() {
     }
   };
 
-  // Dummy audio play function (replace with real TTS if available)
-  const playAudio = (phrase, lang) => {
-    // TODO: Integrate with TTS API for real audio
-    alert(`Play audio for: ${phrase} [${lang}]`);
+  // Play audio for a saved phrase using OpenAI TTS
+  const playAudio = async (phrase, lang) => {
+    try {
+      // Use 'fable' for a friendly voice; OpenAI TTS auto-detects language from text
+      const audioUrl = await openaiTTS(phrase, 'fable');
+      const audio = new Audio(audioUrl);
+      audio.play();
+    } catch (err) {
+      alert('Sorry, failed to generate audio.');
+      console.error('TTS error:', err);
+    }
   };
 
   if (loading) {
@@ -135,6 +144,8 @@ export default function SavedPage() {
           </ul>
         )}
       </div>
+      {/* Persistent Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 } 

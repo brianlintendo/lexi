@@ -5,6 +5,7 @@ import JournalPage from './pages/JournalPage';
 import SettingsPage from './pages/SettingsPage';
 import ChatPage from './pages/ChatPage';
 import SavedPage from './pages/SavedPage';
+import VoiceJournal from './pages/VoiceJournal';
 import { JournalProvider } from './components/JournalContext';
 import { AuthProvider } from './hooks/useAuth';
 // import Login from './components/Login';
@@ -60,6 +61,7 @@ function App() {
               <Route path="/chat" element={<ChatPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/saved" element={<SavedPage />} />
+              <Route path="/voice-journal" element={<VoiceJournal />} />
             </Routes>
           </Router>
         </div>
