@@ -219,7 +219,7 @@ body {
 
 /* Container Styles */
 .container {
-  max-width: 375px;
+  max-width: 550px;
   margin: 0 auto;
   height: 100vh;
   background-color: var(--color-secondary);
