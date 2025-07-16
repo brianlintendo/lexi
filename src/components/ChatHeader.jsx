@@ -18,7 +18,7 @@ export default function ChatHeader({ wordCount = 0, wordLimit = 200, onBack, onT
           >
             <img src={arrowLeftIcon} alt="Back" style={{ width: 28, height: 28 }} />
           </button>
-          <span style={{ fontSize: 22, color: '#757575', fontWeight: 500, fontFamily: 'Albert Sans, sans-serif', letterSpacing: 0.2 }}>{wordCount} words / {wordLimit} words</span>
+          <span style={{ fontSize: 14, color: '#757575', fontWeight: 500, fontFamily: 'Albert Sans, sans-serif', letterSpacing: 0.2 }}>{wordCount} words / {wordLimit} words</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <button aria-label="Book" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>

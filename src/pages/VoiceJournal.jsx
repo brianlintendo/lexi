@@ -79,6 +79,49 @@ export default function VoiceJournal() {
   const audioRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  // Track if user has interacted
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const [readyToSubmit, setReadyToSubmit] = useState(false);
+
+  // Load preserved conversation state from localStorage on mount
+  useEffect(() => {
+    const storedMessages = localStorage.getItem('lexi-chat-messages');
+    const storedVoiceState = localStorage.getItem('lexi-voice-state');
+    
+    if (storedMessages && storedVoiceState) {
+      try {
+        const messages = JSON.parse(storedMessages);
+        const voiceState = JSON.parse(storedVoiceState);
+        
+        // Convert messages back to aiReplies format
+        const replies = [];
+        for (let i = 0; i < messages.length; i += 2) {
+          if (messages[i] && messages[i + 1] && 
+              messages[i].sender === 'user' && messages[i + 1].sender === 'ai') {
+            replies.push({
+              user: messages[i].text,
+              ai: messages[i + 1].text
+            });
+          }
+        }
+        
+        if (replies.length > 0) {
+          setAiReplies(replies);
+          setHasInteracted(true);
+          
+          // Set the current prompt and AI sections
+          if (voiceState.currentPrompt) {
+            setPromptText(voiceState.currentPrompt);
+          }
+          if (voiceState.aiSections) {
+            setAiSections(voiceState.aiSections);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading preserved conversation state:', error);
+      }
+    }
+  }, []);
 
   // Split prompt into sentences for fade-in
   const sentences = promptText.match(/[^.!?]+[.!?\u2026]?/g) || [promptText];
@@ -137,8 +180,8 @@ export default function VoiceJournal() {
           const transcription = await transcribeWithWhisper(audioBlob, 'fr'); // TODO: use dynamic language
           setEntry(transcription);
           if (transcription.trim()) {
-            const aiReply = await getChatCompletion(transcription);
-            handleAIReply(transcription, aiReply);
+            setReadyToSubmit(true);
+            setIndicatorText('Tap to submit');
           } else {
             setIndicatorText('No speech detected. Tap to try again.');
           }
@@ -160,13 +203,35 @@ export default function VoiceJournal() {
   };
 
   // On mount or prompt change, play prompt
-  useEffect(() => {
-    if (!showKeyboard && aiReplies.length === 0) {
-      // Only play initial prompt, don't auto-start listening
+  // useEffect(() => {
+  //   if (!showKeyboard && aiReplies.length === 0) {
+  //     // Only play initial prompt, don't auto-start listening
+  //     playPrompt();
+  //   }
+  // }, []);
+
+  // Modified prompt bubble click handler
+  const handlePromptClick = () => {
+    if (!hasInteracted) {
+      setHasInteracted(true);
       playPrompt();
+      return;
     }
-    // eslint-disable-next-line
-  }, []);
+    if (readyToSubmit) {
+      // Submit the transcription to AI
+      setReadyToSubmit(false);
+      setIndicatorText('Lexi is speaking…');
+      (async () => {
+        const aiReply = await getChatCompletion(entry);
+        handleAIReply(entry, aiReply);
+        setEntry('');
+      })();
+      return;
+    }
+    if (indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted) {
+      startListening();
+    }
+  };
 
   // Mute toggle
   const handleMute = () => {
@@ -179,11 +244,25 @@ export default function VoiceJournal() {
 
   // Keyboard toggle
   const handleKeyboard = () => {
-    setShowKeyboard(true);
-    if (audioRef.current) audioRef.current.pause();
-    setIsSpeaking(false);
-    setIsListening(false);
-    setIndicatorText('Keyboard mode');
+    // Save current conversation state to localStorage
+    const conversationState = {
+      messages: aiReplies.map(reply => [
+        { sender: 'user', text: reply.user, timestamp: new Date() },
+        { sender: 'ai', text: reply.ai, timestamp: new Date() }
+      ]).flat(),
+      currentPrompt: promptText,
+      aiSections: aiSections
+    };
+    
+    // Save to localStorage
+    localStorage.setItem('lexi-chat-messages', JSON.stringify(conversationState.messages));
+    localStorage.setItem('lexi-voice-state', JSON.stringify({
+      currentPrompt: conversationState.currentPrompt,
+      aiSections: conversationState.aiSections
+    }));
+    
+    // Navigate to ChatPage
+    navigate('/chat');
   };
 
   // Send entry in keyboard mode
@@ -199,7 +278,9 @@ export default function VoiceJournal() {
     setAiReplies(replies => [...replies, { user: userText, ai: aiReply }]);
     setPromptText(aiReply);
     setAiSections(parseAISections(aiReply));
-    // Don't auto-play, wait for user to interact
+    if (hasInteracted) {
+      setTimeout(() => playPrompt(aiReply), 400);
+    }
   };
 
   // Navigation handlers
@@ -224,28 +305,25 @@ export default function VoiceJournal() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', padding: '24px 16px 0 16px', position: 'relative' }}>
         {/* AI Prompt (Follow-up) at the top */}
         <div 
-          onClick={() => {
-            if (indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted) {
-              startListening();
-            }
-          }}
+          onClick={handlePromptClick}
           style={{
             border: '1.5px solid #b9aaff',
             borderRadius: 12,
             padding: '24px 20px',
             margin: '0 0 24px 0',
             minWidth: 260,
-            maxWidth: 320,
+            // maxWidth: 320, // removed for full width
             background: 'rgba(255,255,255,0.95)',
             boxShadow: '0 2px 8px rgba(136,84,255,0.04)',
             fontFamily: 'Albert Sans, sans-serif',
             fontSize: 20,
             color: '#7c4dff',
             textAlign: 'center',
-            cursor: indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted ? 'pointer' : 'default',
+            cursor: (!hasInteracted || readyToSubmit || (indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted)) ? 'pointer' : 'default',
             transition: 'box-shadow 0.2s',
-            opacity: indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted ? 1 : 0.9,
+            opacity: (!hasInteracted || readyToSubmit || (indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted)) ? 1 : 0.9,
             position: 'relative',
+            width: '100%',
           }}
         >
           {aiSections.followup ? aiSections.followup.split(/(?<=[.!?])\s+/).map((sentence, i) => (
@@ -253,7 +331,43 @@ export default function VoiceJournal() {
           )) : (
             <FadeInSentence text={promptText} delay={0} />
           )}
-          {indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted && (
+          {(!hasInteracted) && (
+            <div style={{
+              position: 'absolute',
+              bottom: -8,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: '#7A54FF',
+              color: '#fff',
+              padding: '4px 12px',
+              borderRadius: 12,
+              fontSize: 12,
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              boxShadow: '0 2px 8px rgba(122,84,255,0.2)',
+            }}>
+              Tap to start
+            </div>
+          )}
+          {(hasInteracted && readyToSubmit) && (
+            <div style={{
+              position: 'absolute',
+              bottom: -8,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: '#7A54FF',
+              color: '#fff',
+              padding: '4px 12px',
+              borderRadius: 12,
+              fontSize: 12,
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              boxShadow: '0 2px 8px rgba(122,84,255,0.2)',
+            }}>
+              Tap to submit
+            </div>
+          )}
+          {(hasInteracted && !readyToSubmit && indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted) && (
             <div style={{
               position: 'absolute',
               bottom: -8,
@@ -276,7 +390,7 @@ export default function VoiceJournal() {
         {aiReplies.length > 0 && (
           <div style={{
             width: '100%',
-            maxWidth: 320,
+            // maxWidth: 320,
             margin: '0 auto 16px auto',
             background: '#f7f7fa',
             borderRadius: 10,
@@ -286,6 +400,7 @@ export default function VoiceJournal() {
             fontFamily: 'Albert Sans, sans-serif',
             boxShadow: '0 1px 4px rgba(136,84,255,0.04)',
             border: '1px solid #ece6ff',
+            width: '100%',
           }}>
             {aiReplies[aiReplies.length-1].user}
           </div>
@@ -294,7 +409,7 @@ export default function VoiceJournal() {
         {(aiSections.corrected || aiSections.corrections) && (
           <div style={{
             width: '100%',
-            maxWidth: 320,
+            // maxWidth: 320,
             margin: '0 auto 24px auto',
             background: '#fff',
             border: '2px solid #e0e0f7',
@@ -302,11 +417,12 @@ export default function VoiceJournal() {
             boxShadow: '0 2px 8px rgba(136,84,255,0.06)',
             padding: '20px 20px 16px 20px',
             fontFamily: 'Albert Sans, sans-serif',
+            width: '100%',
           }}>
             {aiSections.corrected && (
               <div style={{ marginBottom: 12 }}>
                 <span style={{ fontWeight: 700, color: '#7A54FF' }}>Corrected Entry:</span><br />
-                <span>{aiSections.corrected}</span>
+                <span dangerouslySetInnerHTML={{ __html: aiSections.corrected }} />
               </div>
             )}
             {aiSections.corrections && (
@@ -314,7 +430,7 @@ export default function VoiceJournal() {
                 <span style={{ fontWeight: 700, color: '#7A54FF' }}>Key Corrections:</span>
                 <ul style={{ margin: '8px 0 0 20px', padding: 0, color: '#444', fontWeight: 400, fontSize: 15 }}>
                   {aiSections.corrections.split(/\n|\r/).filter(Boolean).map((line, i) => (
-                    <li key={i}>{line}</li>
+                    <li key={i} dangerouslySetInnerHTML={{ __html: line }} />
                   ))}
                 </ul>
               </div>
