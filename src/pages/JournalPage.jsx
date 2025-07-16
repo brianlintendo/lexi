@@ -233,7 +233,7 @@ export default function JournalPage() {
     } else {
       setAiPrompt('');
     }
-  }, [selectedDate, journalEntries, language]);
+  }, [selectedDate, language]); // Removed journalEntries from dependencies
 
   // Track last chosen language for fallback
   const [lastLanguage, setLastLanguage] = useState(language);
