@@ -1,52 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { openaiTTS, transcribeWithWhisper, getChatCompletion } from '../openai';
-
-// TopHeader component (reusable)
-function TopHeader({ onBack, onSettings, wordCount = 0, wordLimit = 1000, dateTime }) {
-  return (
-    <div style={{
-      maxWidth: 375,
-      margin: '0 auto',
-      padding: '24px 0 0 0',
-      background: '#fff',
-      position: 'relative',
-      zIndex: 2,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer' }}>&larr;</button>
-        <div style={{ color: '#888', fontSize: 18 }}>{wordCount} words / {wordLimit} words</div>
-        <div style={{ display: 'flex', gap: 16 }}>
-          <button style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-            <span role="img" aria-label="book">📖</span>
-          </button>
-          <button onClick={onSettings} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-            <span role="img" aria-label="settings">🛠️</span>
-          </button>
-        </div>
-      </div>
-      <div style={{ textAlign: 'center', color: '#888', fontSize: 18, marginTop: 16 }}>{dateTime}</div>
-      <div style={{ height: 8 }} />
-      <div style={{ width: '90%', margin: '0 auto', height: 12, background: '#eee', borderRadius: 6 }}>
-        <div style={{ width: `${Math.min(100, (wordCount / wordLimit) * 100)}%`, height: '100%', background: '#8854ff', borderRadius: 6 }} />
-      </div>
-    </div>
-  );
-}
+import ChatHeader from '../components/ChatHeader';
+import micIcon from '../assets/icons/mic.svg';
+import micMuteIcon from '../assets/icons/microphone-mute.svg';
+import keyboardIcon from '../assets/icons/keyboard.svg';
 
 // Animated dots
 function SpeakingDots({ animate = true }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', gap: 10, margin: '16px 0' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', gap: 8, margin: '0' }}>
       {[...Array(6)].map((_, i) => (
         <span
           key={i}
           style={{
             display: 'inline-block',
-            width: 12,
-            height: 12,
+            width: 8,
+            height: 8,
             borderRadius: '50%',
-            background: '#8854ff',
+            background: '#7A54FF',
             opacity: 0.7,
             animation: animate ? `dotFade 1.2s infinite ${i * 0.15}s` : 'none',
           }}
@@ -79,10 +51,23 @@ function FadeInSentence({ text, delay }) {
   );
 }
 
+// Helper to parse AI response into sections
+function parseAISections(text) {
+  if (!text) return {};
+  const correctedMatch = text.match(/\*\*Corrected Entry:\*\*[\s\n]*([\s\S]*?)(?=\*\*Key Corrections:|$)/i);
+  const correctionsMatch = text.match(/\*\*Key Corrections:\*\*[\s\n]*([\s\S]*?)(?=\*\*Phrase to Remember:|$)/i);
+  const followupMatch = text.match(/\*\*Follow-up:\*\*[\s\n]*([\s\S]*)/i);
+  return {
+    corrected: correctedMatch ? correctedMatch[1].trim() : null,
+    corrections: correctionsMatch ? correctionsMatch[1].trim() : null,
+    followup: followupMatch ? followupMatch[1].trim() : null,
+  };
+}
+
 // Main VoiceJournal page
 export default function VoiceJournal() {
   const navigate = useNavigate();
-  const [promptText, setPromptText] = useState('Bonjour ! Prêt(e) à écrire en français ? 😊 Comment tu te sens aujourd’hui ?');
+  const [promptText, setPromptText] = useState('Bonjour ! Pret(e) a ecrire en francais ? 😊 Comment tu te sens aujourd\'hui ?');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(false);
@@ -90,13 +75,16 @@ export default function VoiceJournal() {
   const [aiReplies, setAiReplies] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [indicatorText, setIndicatorText] = useState('Lexi is speaking…');
+  const [indicatorText, setIndicatorText] = useState('Speak now');
   const audioRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
   // Split prompt into sentences for fade-in
   const sentences = promptText.match(/[^.!?]+[.!?\u2026]?/g) || [promptText];
+
+  // Instead of just promptText, keep parsed sections for the latest AI reply
+  const [aiSections, setAiSections] = useState(parseAISections(promptText));
 
   // Extract follow-up section for display and TTS
   function getFollowup(text) {
@@ -109,9 +97,10 @@ export default function VoiceJournal() {
     if (isMuted) return;
     setIsSpeaking(true);
     setIndicatorText('Lexi is speaking…');
+    const { followup } = parseAISections(text);
     try {
       // Only speak the follow-up section
-      const toSpeak = getFollowup(text);
+      const toSpeak = followup || text;
       const audioUrl = await openaiTTS(toSpeak, 'nova'); // Use a female voice
       if (audioRef.current) {
         audioRef.current.pause();
@@ -120,14 +109,12 @@ export default function VoiceJournal() {
       audioRef.current = new window.Audio(audioUrl);
       audioRef.current.onended = () => {
         setIsSpeaking(false);
-        setIndicatorText('Start speaking');
-        startListening();
+        setIndicatorText('Speak now');
       };
       audioRef.current.play();
     } catch (e) {
       setIsSpeaking(false);
-      setIndicatorText('Start speaking');
-      startListening();
+      setIndicatorText('Speak now');
     }
   };
 
@@ -151,9 +138,7 @@ export default function VoiceJournal() {
           setEntry(transcription);
           if (transcription.trim()) {
             const aiReply = await getChatCompletion(transcription);
-            setAiReplies(replies => [...replies, { user: transcription, ai: aiReply }]);
-            setPromptText(aiReply);
-            setTimeout(() => playPrompt(aiReply), 500); // Play Lexi's reply
+            handleAIReply(transcription, aiReply);
           } else {
             setIndicatorText('No speech detected. Tap to try again.');
           }
@@ -176,9 +161,12 @@ export default function VoiceJournal() {
 
   // On mount or prompt change, play prompt
   useEffect(() => {
-    if (!showKeyboard) playPrompt();
+    if (!showKeyboard && aiReplies.length === 0) {
+      // Only play initial prompt, don't auto-start listening
+      playPrompt();
+    }
     // eslint-disable-next-line
-  }, [promptText, showKeyboard]);
+  }, []);
 
   // Mute toggle
   const handleMute = () => {
@@ -202,10 +190,16 @@ export default function VoiceJournal() {
   const handleSend = async () => {
     if (!entry.trim()) return;
     const aiReply = await getChatCompletion(entry);
-    setAiReplies(replies => [...replies, { user: entry, ai: aiReply }]);
+    handleAIReply(entry, aiReply);
     setEntry('');
+  };
+
+  // When AI replies, update both promptText and aiSections
+  const handleAIReply = (userText, aiReply) => {
+    setAiReplies(replies => [...replies, { user: userText, ai: aiReply }]);
     setPromptText(aiReply);
-    setTimeout(() => playPrompt(aiReply), 500);
+    setAiSections(parseAISections(aiReply));
+    // Don't auto-play, wait for user to interact
   };
 
   // Navigation handlers
@@ -217,49 +211,94 @@ export default function VoiceJournal() {
     setPromptText('Super ! Peux-tu me raconter ta journée en quelques phrases ?');
   };
 
-  // Date/time for header
-  const dateTime = new Date().toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  // Calculate word count
+  const wordCount = aiReplies.reduce((count, reply) => {
+    return count + (reply.user ? reply.user.split(/\s+/).length : 0);
+  }, 0);
+  const wordLimit = 1000;
 
+  // Render logic
   return (
     <div style={{ maxWidth: 375, margin: '0 auto', minHeight: '100vh', background: '#fff', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <TopHeader onBack={onBack} onSettings={onSettings} wordCount={185} wordLimit={1000} dateTime={dateTime} />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '0 16px', position: 'relative' }}>
-        {!showKeyboard ? (
-          <>
-            <div
-              style={{
-                border: '1.5px solid #b9aaff',
-                borderRadius: 12,
-                padding: '28px 18px',
-                margin: '32px 0 0 0',
-                minWidth: 260,
-                maxWidth: 320,
-                background: 'rgba(255,255,255,0.95)',
-                boxShadow: '0 2px 8px rgba(136,84,255,0.04)',
-                fontFamily: 'Albert Sans, sans-serif',
-                fontSize: 24,
-                color: '#7c4dff',
-                textAlign: 'center',
-                cursor: isListening ? 'default' : 'pointer',
-                transition: 'box-shadow 0.2s',
-                opacity: isListening ? 0.7 : 1
-              }}
-              onClick={() => {
-                if (!isSpeaking && !isListening) playPrompt();
-              }}
-            >
-              {/* Only display the follow-up text, no heading */}
-              {getFollowup(promptText).split(/(?<=[.!?])\s+/).map((sentence, i) => (
-                <FadeInSentence key={i} text={sentence.trim()} delay={i * 800} />
-              ))}
-            </div>
-            <div style={{ marginTop: 40, textAlign: 'center', width: '100%' }}>
-              <div style={{ color: '#888', fontSize: 18, marginBottom: 8 }}>{indicatorText}</div>
-              <SpeakingDots animate={isSpeaking || isListening} />
-            </div>
-          </>
-        ) : (
-          <div style={{ width: '100%', marginTop: 40 }}>
+      <ChatHeader wordCount={wordCount} wordLimit={wordLimit} onBack={onBack} />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', padding: '24px 16px 0 16px', position: 'relative' }}>
+        {/* AI Prompt (Follow-up) at the top */}
+        <div style={{
+          border: '1.5px solid #b9aaff',
+          borderRadius: 12,
+          padding: '24px 20px',
+          margin: '0 0 24px 0',
+          minWidth: 260,
+          maxWidth: 320,
+          background: 'rgba(255,255,255,0.95)',
+          boxShadow: '0 2px 8px rgba(136,84,255,0.04)',
+          fontFamily: 'Albert Sans, sans-serif',
+          fontSize: 20,
+          color: '#7c4dff',
+          textAlign: 'center',
+        }}>
+          {aiSections.followup ? aiSections.followup.split(/(?<=[.!?])\s+/).map((sentence, i) => (
+            <FadeInSentence key={i} text={sentence.trim()} delay={i * 800} />
+          )) : (
+            <FadeInSentence text={promptText} delay={0} />
+          )}
+        </div>
+        {/* User's response (last entry) */}
+        {aiReplies.length > 0 && (
+          <div style={{
+            width: '100%',
+            maxWidth: 320,
+            margin: '0 auto 16px auto',
+            background: '#f7f7fa',
+            borderRadius: 10,
+            padding: '18px 20px',
+            fontSize: 18,
+            color: '#222',
+            fontFamily: 'Albert Sans, sans-serif',
+            boxShadow: '0 1px 4px rgba(136,84,255,0.04)',
+            border: '1px solid #ece6ff',
+          }}>
+            {aiReplies[aiReplies.length-1].user}
+          </div>
+        )}
+        {/* Correction box UI */}
+        {(aiSections.corrected || aiSections.corrections) && (
+          <div style={{
+            width: '100%',
+            maxWidth: 320,
+            margin: '0 auto 24px auto',
+            background: '#fff',
+            border: '2px solid #e0e0f7',
+            borderRadius: 14,
+            boxShadow: '0 2px 8px rgba(136,84,255,0.06)',
+            padding: '20px 20px 16px 20px',
+            fontFamily: 'Albert Sans, sans-serif',
+          }}>
+            {aiSections.corrected && (
+              <div style={{ marginBottom: 12 }}>
+                <span style={{ fontWeight: 700, color: '#7A54FF' }}>Corrected Entry:</span><br />
+                <span>{aiSections.corrected}</span>
+              </div>
+            )}
+            {aiSections.corrections && (
+              <div>
+                <span style={{ fontWeight: 700, color: '#7A54FF' }}>Key Corrections:</span>
+                <ul style={{ margin: '8px 0 0 20px', padding: 0, color: '#444', fontWeight: 400, fontSize: 15 }}>
+                  {aiSections.corrections.split(/\n|\r/).filter(Boolean).map((line, i) => (
+                    <li key={i}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+        {/* Indicator and dots */}
+        <div style={{ marginTop: 32, textAlign: 'center', width: '100%' }}>
+          <div style={{ color: '#888', fontSize: 16, marginBottom: 16, fontWeight: 500 }}>{indicatorText}</div>
+        </div>
+        {/* Keyboard mode */}
+        {showKeyboard && (
+          <div style={{ width: '100%', marginTop: 32 }}>
             <textarea
               value={entry}
               onChange={e => setEntry(e.target.value)}
@@ -291,16 +330,6 @@ export default function VoiceJournal() {
                 fontFamily: 'Albert Sans, sans-serif',
               }}
             >Send</button>
-            <div style={{ marginTop: 24 }}>
-              {aiReplies.map((r, i) => (
-                <div key={i} style={{ marginBottom: 16 }}>
-                  <div style={{ color: '#333', fontWeight: 500, marginBottom: 4 }}>You:</div>
-                  <div style={{ color: '#7c4dff', marginBottom: 8 }}>{r.user}</div>
-                  <div style={{ color: '#333', fontWeight: 500, marginBottom: 4 }}>Lexi:</div>
-                  <div style={{ color: '#8854ff' }}>{r.ai}</div>
-                </div>
-              ))}
-            </div>
           </div>
         )}
       </div>
@@ -314,7 +343,7 @@ export default function VoiceJournal() {
         maxWidth: 375,
         background: '#fff',
         boxShadow: '0 -2px 12px rgba(136,84,255,0.06)',
-        padding: '16px 0 24px 0',
+        padding: '20px 0 32px 0',
         zIndex: 10,
         display: 'flex',
         justifyContent: 'space-between',
@@ -331,13 +360,12 @@ export default function VoiceJournal() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 28,
-            color: '#333',
+            padding: 0,
             cursor: 'pointer',
             marginLeft: 16,
           }}
         >
-          {isMuted ? <span role="img" aria-label="muted">🔇</span> : <span role="img" aria-label="mic">🎤</span>}
+          <img src={isMuted ? micMuteIcon : micIcon} alt={isMuted ? "Muted" : "Microphone"} style={{ width: 24, height: 24 }} />
         </button>
         <SpeakingDots animate={isSpeaking || isListening} />
         <button
@@ -351,13 +379,12 @@ export default function VoiceJournal() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 28,
-            color: '#333',
+            padding: 0,
             cursor: 'pointer',
             marginRight: 16,
           }}
         >
-          <span role="img" aria-label="keyboard">⌨️</span>
+          <img src={keyboardIcon} alt="Keyboard" style={{ width: 24, height: 24 }} />
         </button>
       </div>
       {/* Settings modal stub */}

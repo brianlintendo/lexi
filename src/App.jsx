@@ -8,6 +8,7 @@ import SettingsPage from './pages/SettingsPage';
 import SavedPage from './pages/SavedPage';
 import ChatPage from './pages/ChatPage';
 import PromptsPage from './pages/PromptsPage';
+import VoiceJournal from './pages/VoiceJournal';
 
 function PromptsPageWithNav() {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/saved" element={<SavedPage />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/prompts" element={<PromptsPageWithNav />} />
+        <Route path="/voice-journal" element={<VoiceJournal />} />
       </Routes>
     </BrowserRouter>
   );

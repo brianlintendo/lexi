@@ -248,11 +248,6 @@ export default function JournalPage() {
 
   return (
     <div className="journal-bg">
-      {/* Debug output for UI */}
-      <div style={{ position: 'absolute', top: 0, right: 0, background: '#fffbe6', color: '#7A54FF', fontSize: 12, padding: 4, zIndex: 9999 }}>
-        lang: {language} | last: {lastLanguage} | loading: {String(aiPromptLoading)}<br />
-        prompt: {aiPrompt || '[none]'}
-      </div>
       {/* Top Section */}
       <div className="journal-header-flex">
         <div className="weekdays-row-centered" style={{ display: 'flex', justifyContent: 'flex-start', gap: 20 }}>
