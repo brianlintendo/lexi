@@ -223,24 +223,53 @@ export default function VoiceJournal() {
       <ChatHeader wordCount={wordCount} wordLimit={wordLimit} onBack={onBack} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', padding: '24px 16px 0 16px', position: 'relative' }}>
         {/* AI Prompt (Follow-up) at the top */}
-        <div style={{
-          border: '1.5px solid #b9aaff',
-          borderRadius: 12,
-          padding: '24px 20px',
-          margin: '0 0 24px 0',
-          minWidth: 260,
-          maxWidth: 320,
-          background: 'rgba(255,255,255,0.95)',
-          boxShadow: '0 2px 8px rgba(136,84,255,0.04)',
-          fontFamily: 'Albert Sans, sans-serif',
-          fontSize: 20,
-          color: '#7c4dff',
-          textAlign: 'center',
-        }}>
+        <div 
+          onClick={() => {
+            if (indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted) {
+              startListening();
+            }
+          }}
+          style={{
+            border: '1.5px solid #b9aaff',
+            borderRadius: 12,
+            padding: '24px 20px',
+            margin: '0 0 24px 0',
+            minWidth: 260,
+            maxWidth: 320,
+            background: 'rgba(255,255,255,0.95)',
+            boxShadow: '0 2px 8px rgba(136,84,255,0.04)',
+            fontFamily: 'Albert Sans, sans-serif',
+            fontSize: 20,
+            color: '#7c4dff',
+            textAlign: 'center',
+            cursor: indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted ? 'pointer' : 'default',
+            transition: 'box-shadow 0.2s',
+            opacity: indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted ? 1 : 0.9,
+            position: 'relative',
+          }}
+        >
           {aiSections.followup ? aiSections.followup.split(/(?<=[.!?])\s+/).map((sentence, i) => (
             <FadeInSentence key={i} text={sentence.trim()} delay={i * 800} />
           )) : (
             <FadeInSentence text={promptText} delay={0} />
+          )}
+          {indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted && (
+            <div style={{
+              position: 'absolute',
+              bottom: -8,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: '#7A54FF',
+              color: '#fff',
+              padding: '4px 12px',
+              borderRadius: 12,
+              fontSize: 12,
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              boxShadow: '0 2px 8px rgba(122,84,255,0.2)',
+            }}>
+              Tap to speak
+            </div>
           )}
         </div>
         {/* User's response (last entry) */}
