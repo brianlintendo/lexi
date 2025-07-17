@@ -19,7 +19,7 @@ function PromptsPageWithNav() {
 export default function App() {
   useEffect(() => {
     if (window.location.hash.includes('access_token')) {
-      supabase.auth.getSessionFromUrl().then(({ data, error }) => {
+      supabase.auth.exchangeCodeForSession().then(({ data, error }) => {
         if (data?.session) {
           window.location.hash = '';
           window.location.replace('/journal#'); // Redirect to journal after sign-in
