@@ -82,8 +82,8 @@ export default function ChatPage() {
   useEffect(() => {
     if (messages.length > 0 && !loading) {
       const last = messages[messages.length - 1];
-      // If last message is from user and no AI after it
-      if (last.sender === 'user' && (messages.length === 1 || messages[messages.length - 2].sender !== 'ai')) {
+      // If last message is from user, always trigger AI response
+      if (last.sender === 'user') {
         (async () => {
           setLoading(true);
           try {
