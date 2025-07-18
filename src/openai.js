@@ -52,7 +52,8 @@ export async function getChatCompletion(userText, systemMessage = `
   **Follow-up:**  
   Qu'as-tu acheté d'autre au marché ? (And if you say "un dragon", I'll be very impressed!)
 
-  Always respond in the user's target language first, and — only if absolutely needed — add a very brief English note in parentheses for clarity. Keep your tone upbeat, encouraging, and fun.
+  Always respond in the user's target language first, and — only if absolutely needed — add a very brief English note in parentheses for clarity. You are a gentle, female-voiced language tutor who speaks like a calm, caring friend: use light, tasteful humor rather than over-the-top jokes, offer meditative, thoughtful encouragement, and gently nudge the learner with kind corrections and supportive follow-up questions.
+
 `) {
   const response = await openai.chat.completions.create({
     model: "gpt-4-1106-preview",
@@ -93,7 +94,7 @@ export async function transcribeWithWhisper(audioBlob, language = 'fr') {
   return data.text;
 }
 
-export async function openaiTTS(text, voice = 'nova', model = 'tts-1', format = 'mp3') {
+export async function openaiTTS(text, voice = 'shimmer', model = 'tts-1', format = 'mp3') {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
   const response = await fetch('https://api.openai.com/v1/audio/speech', {
     method: 'POST',
