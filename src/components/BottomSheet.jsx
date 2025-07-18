@@ -142,6 +142,8 @@ export default function BottomSheet({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          maxHeight: '75vh',
+          overflowY: 'auto',
           ...style,
         }}
         onClick={e => e.stopPropagation()}

@@ -332,7 +332,7 @@ export default function JournalPage() {
           marginBottom: '16px',
           position: 'relative'
         }}>
-          <div className="date-heading">{formatDateHeading(selectedDate)}</div>
+        <div className="date-heading">{formatDateHeading(selectedDate)}</div>
           {showCompletedEntry && text && (
             <div style={{ position: 'relative' }}>
               <img 
@@ -403,7 +403,7 @@ export default function JournalPage() {
         </div>
         {/* Show completed journal entry */}
         {showCompletedEntry && text ? (
-          <div style={{
+          <div style={{ 
             color: 'var(--Text-Text-Dark, #1C1C1C)',
             fontFamily: 'Albert Sans',
             fontSize: '18px',
@@ -412,15 +412,15 @@ export default function JournalPage() {
             lineHeight: '28px',
             whiteSpace: 'pre-wrap',
             margin: '24px 0 0 0',
-          }}>
-            {text.split('\n\n').map((paragraph, index) => (
-              <p key={index} style={{
-                margin: index > 0 ? '16px 0 0 0' : '0 0 16px 0',
-                padding: 0
-              }}>
-                {paragraph}
-              </p>
-            ))}
+            }}>
+              {text.split('\n\n').map((paragraph, index) => (
+                <p key={index} style={{
+                  margin: index > 0 ? '16px 0 0 0' : '0 0 16px 0',
+                  padding: 0
+                }}>
+                  {paragraph}
+                </p>
+              ))}
           </div>
         ) : chatPreview ? (
           <>

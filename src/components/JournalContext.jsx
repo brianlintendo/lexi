@@ -60,4 +60,55 @@ export function ProfileProvider({ children }) {
 
 export function useProfile() {
   return useContext(ProfileContext);
+}
+
+// Combined provider that handles profile-to-journal language sync
+export function AppProviders({ children }) {
+  const [journalInput, setJournalInput] = useState('');
+  const [language, setLanguage] = useState('fr'); // default to French
+  const { user } = useUser();
+  const [profile, setProfile] = useState(null);
+  const [profileError, setProfileError] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  // Load profile on user change
+  useEffect(() => {
+    if (user?.id) {
+      setProfileLoading(true);
+      getProfile(user.id)
+        .then(setProfile)
+        .catch(err => setProfileError(err.message))
+        .finally(() => setProfileLoading(false));
+    } else {
+      setProfile(null);
+      setProfileError(null);
+      setProfileLoading(false);
+    }
+  }, [user?.id]);
+
+  // Update journal language when profile loads
+  useEffect(() => {
+    if (profile?.language) {
+      setLanguage(profile.language);
+    }
+  }, [profile?.language]);
+
+  // Save profile helper with error handling
+  const saveProfileWithError = async (data) => {
+    try {
+      await saveProfile({ id: user.id, ...data });
+      setProfile(data);
+      setProfileError(null);
+    } catch (err) {
+      setProfileError(err.message);
+    }
+  };
+
+  return (
+    <JournalContext.Provider value={{ journalInput, setJournalInput, language, setLanguage }}>
+      <ProfileContext.Provider value={{ profile, setProfile, profileError, profileLoading, saveProfile: saveProfileWithError }}>
+        {children}
+      </ProfileContext.Provider>
+    </JournalContext.Provider>
+  );
 } 

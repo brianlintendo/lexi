@@ -55,6 +55,10 @@
   --transition-fast: 0.15s ease;
   --transition-normal: 0.2s ease;
   --transition-slow: 0.3s ease;
+
+  /* Onboarding background color */
+  --color-onboard-bg: #F6F5F4;
+  --color-onboard-gradient: linear-gradient(180deg, #FAF4F4 0%, #E9E3F5 48.08%, #F5F1FD 100%);
 }
 
 /* Global Reset and Base Styles */

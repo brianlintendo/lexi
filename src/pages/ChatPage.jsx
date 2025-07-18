@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import themesIcon from '../assets/icons/themes.svg';
 import PromptsPage from './PromptsPage';
 import { useLocation } from 'react-router-dom';
+import { useProfile } from '../components/JournalContext';
 
 const PROMPTS = {
   en: `Hello! I'm Lexi. Ready to write in English? How are you feeling today?`,
@@ -46,6 +47,7 @@ export default function ChatPage() {
   const { journalInput, language } = useJournal();
   const navigate = useNavigate();
   const location = useLocation();
+  const { profile } = useProfile();
   const [input, setInput] = useState(journalInput || '');
   const [messages, setMessages] = useState(() => {
     const stored = localStorage.getItem('lexi-chat-messages');
@@ -87,7 +89,12 @@ export default function ChatPage() {
         (async () => {
           setLoading(true);
           try {
-            const aiText = await getChatCompletion(last.text);
+            let systemPrompt;
+            if (profile?.proficiency) {
+              // Adjust system prompt based on proficiency
+              systemPrompt = getProficiencyPrompt(profile.proficiency);
+            }
+            const aiText = await getChatCompletion(last.text, systemPrompt);
             setMessages(prev => [...prev, { sender: 'ai', text: aiText, timestamp: new Date() }]);
             // OpenAI TTS integration
             try {
@@ -110,7 +117,7 @@ export default function ChatPage() {
       }
     }
     // eslint-disable-next-line
-  }, [messages]);
+  }, [messages, profile]);
 
   useEffect(() => {
     localStorage.setItem('lexi-chat-messages', JSON.stringify(messages));
@@ -312,4 +319,42 @@ export default function ChatPage() {
       />
     </div>
   );
+}
+
+// Helper to generate system prompt based on proficiency
+function getProficiencyPrompt(proficiency) {
+  let levelInstructions = '';
+  switch (proficiency) {
+    case 'A1':
+    case 'A1 (Beginner)':
+      levelInstructions = `The user is a BEGINNER (A1). Use only simple, basic vocabulary and grammar. Do NOT suggest advanced words or idioms in the Vocabulary Enhancer. Keep follow-up questions very simple and short.`;
+      break;
+    case 'A2':
+    case 'A2 (Elementary)':
+      levelInstructions = `The user is ELEMENTARY (A2). Use simple vocabulary and grammar. Avoid advanced or nuanced words. Follow-up questions should be straightforward.`;
+      break;
+    case 'B1':
+    case 'B1 (Intermediate)':
+      levelInstructions = `The user is INTERMEDIATE (B1). You can introduce some intermediate vocabulary and slightly more complex follow-ups, but avoid very advanced or idiomatic language.`;
+      break;
+    case 'B2':
+    case 'B2 (Upper-Intermediate)':
+      levelInstructions = `The user is UPPER-INTERMEDIATE (B2). You can use more complex vocabulary and idioms, but avoid the most advanced or rare words. Follow-ups can be more nuanced.`;
+      break;
+    case 'C1':
+    case 'C1 (Advanced)':
+      levelInstructions = `The user is ADVANCED (C1). Use advanced, nuanced vocabulary and idioms in the Vocabulary Enhancer. Follow-up questions can be sophisticated and detailed.`;
+      break;
+    default:
+      levelInstructions = '';
+  }
+  return `You are Lexi, a friendly, lightly humorous language tutor and conversation partner. ${levelInstructions}\n\n` +
+    `When the user submits a sentence or short text in any language, you MUST reply in this exact format, with all five sections, every time:\n\n` +
+    `**Corrected Entry:**  \n<full corrected sentence, with any corrections bolded using <b>...</b> HTML tags>\n\n` +
+    `**Key Corrections:**  \n- For each correction, show the entire corrected sentence for context, with the correction bolded using <b>...</b> HTML tags (not **...**). Briefly explain the change after the sentence.\n- Example: Je <b>suis allé</b> au marché. ("suis allé" is the correct past tense for "I went")\n- Do this for each important correction.\n\n` +
+    `**Phrase to Remember:**  \n- Provide 3-5 short phrases or collocations from the correction, each as a bullet, in quotes, with a simple translation if helpful. If fewer than 3 are relevant, just include those.\n\n` +
+    `**Vocabulary Enhancer:**  \n- Suggest 1-3 advanced, topic-relevant vocabulary words, idioms, or phrases (with translation or explanation) that would elevate the user's writing, based on the theme of their entry. Each should be a bullet, and always keep it relevant to the topic. For example, if the entry is about a picnic, suggest a phrase or idiom about picnics or food; if about a job, suggest something relevant to work or career. Example: Instead of 'la nourriture était très bien', suggest 'un festin pour les papilles' (a feast for the taste buds); instead of 'j'ai faim', suggest 'avoir un petit creux' (to feel a bit peckish).\n\n` +
+    `**Follow-up:**  \n<A natural follow-up question in the target language, related to what the user wrote. Make it lighthearted, playful, and banter-y, encouraging a friendly and fun conversation.>\n\n` +
+    `You must always include all five sections, even if the user's sentence is perfect or only needs encouragement.\n\n` +
+    `Always respond in the user's target language first, and — only if absolutely needed — add a very brief English note in parentheses for clarity. You are a gentle, female-voiced language tutor who speaks like a calm, caring friend: use light, tasteful humor rather than over-the-top jokes, offer meditative, thoughtful encouragement, and gently nudge the learner with kind corrections and supportive follow-up questions.`;
 } 
