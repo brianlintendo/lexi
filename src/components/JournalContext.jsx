@@ -5,6 +5,46 @@ import { getProfile, saveProfile } from '../api/profile';
 const JournalContext = createContext();
 const ProfileContext = createContext();
 
+// Language mapping function to handle both codes and names
+const mapLanguageToCode = (language) => {
+  if (!language) return 'fr'; // default fallback
+  
+  // If it's already a code, return it
+  if (['en', 'es', 'fr', 'zh', 'pt', 'it', 'de', 'ja', 'ko', 'ru', 'ar', 'hi', 'nl', 'sv', 'no', 'da', 'fi', 'pl', 'tr', 'he', 'th', 'vi', 'id', 'ms'].includes(language)) {
+    return language;
+  }
+  
+  // Map language names to codes
+  const languageMap = {
+    'English': 'en',
+    'Spanish': 'es', 
+    'French': 'fr',
+    'Chinese': 'zh',
+    'Portuguese': 'pt',
+    'Italian': 'it',
+    'German': 'de',
+    'Japanese': 'ja',
+    'Korean': 'ko',
+    'Russian': 'ru',
+    'Arabic': 'ar',
+    'Hindi': 'hi',
+    'Dutch': 'nl',
+    'Swedish': 'sv',
+    'Norwegian': 'no',
+    'Danish': 'da',
+    'Finnish': 'fi',
+    'Polish': 'pl',
+    'Turkish': 'tr',
+    'Hebrew': 'he',
+    'Thai': 'th',
+    'Vietnamese': 'vi',
+    'Indonesian': 'id',
+    'Malay': 'ms'
+  };
+  
+  return languageMap[language] || 'fr'; // fallback to French
+};
+
 export function JournalProvider({ children }) {
   const [journalInput, setJournalInput] = useState('');
   const [language, setLanguage] = useState('fr'); // default to French
@@ -86,10 +126,12 @@ export function AppProviders({ children }) {
     }
   }, [user?.id]);
 
-  // Update journal language when profile loads
+  // Update journal language when profile loads - with proper mapping
   useEffect(() => {
     if (profile?.language) {
-      setLanguage(profile.language);
+      const mappedLanguage = mapLanguageToCode(profile.language);
+      console.log('Mapping profile language:', profile.language, 'to code:', mappedLanguage);
+      setLanguage(mappedLanguage);
     }
   }, [profile?.language]);
 

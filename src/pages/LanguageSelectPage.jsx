@@ -88,7 +88,7 @@ export default function LanguageSelectPage() {
       {/* Continue button */}
       <div style={{ width: '100%', padding: '0 16px 32px 16px' }}>
         <PrimaryLargeButton
-          onClick={() => navigate('/onboard/proficiency', { state: { name, language: selected?.label } })}
+          onClick={() => navigate('/onboard/proficiency', { state: { name, language: selected?.code } })}
           disabled={!selected}
         >Continue</PrimaryLargeButton>
       </div>

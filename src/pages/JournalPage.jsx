@@ -56,6 +56,37 @@ function getDateKey(date) {
 
 const STORAGE_KEY = 'lexi-journal-entries';
 
+// Function to map language codes to flag codes
+function getFlagCode(language) {
+  const flagMap = {
+    'en': 'us',
+    'es': 'es', 
+    'fr': 'fr',
+    'zh': 'cn',
+    'pt': 'br',
+    'it': 'it',
+    'de': 'de',
+    'ja': 'jp',
+    'ko': 'kr',
+    'ru': 'ru',
+    'ar': 'sa',
+    'hi': 'in',
+    'nl': 'nl',
+    'sv': 'se',
+    'no': 'no',
+    'da': 'dk',
+    'fi': 'fi',
+    'pl': 'pl',
+    'tr': 'tr',
+    'he': 'il',
+    'th': 'th',
+    'vi': 'vn',
+    'id': 'id',
+    'ms': 'my'
+  };
+  return flagMap[language] || 'fr';
+}
+
 function getDynamicPrompt(selectedDate, journalEntries, language) {
   const todayKey = getDateKey(selectedDate);
   const yesterday = new Date(selectedDate);
@@ -183,6 +214,24 @@ export default function JournalPage() {
     zh: "你好！准备好用中文写作了吗？你今天感觉怎么样？",
     pt: "Olá! Pronto(a) para escrever em português? Como você está se sentindo hoje?",
     it: "Ciao! Pronto(a) a scrivere in italiano? Come ti senti oggi?",
+    de: "Hallo! Bereit, auf Deutsch zu schreiben? Wie fühlst du dich heute?",
+    ja: "こんにちは！日本語で書く準備はできましたか？今日はどんな気分ですか？",
+    ko: "안녕하세요! 한국어로 글쓰기 준비가 되셨나요? 오늘 기분이 어떠신가요?",
+    ru: "Привет! Готов писать на русском? Как ты себя чувствуешь сегодня?",
+    ar: "مرحباً! مستعد للكتابة بالعربية؟ كيف تشعر اليوم؟",
+    hi: "नमस्ते! हिंदी में लिखने के लिए तैयार हैं? आज आप कैसा महसूस कर रहे हैं?",
+    nl: "Hallo! Klaar om in het Nederlands te schrijven? Hoe voel je je vandaag?",
+    sv: "Hej! Redo att skriva på svenska? Hur mår du idag?",
+    no: "Hei! Klar til å skrive på norsk? Hvordan føler du deg i dag?",
+    da: "Hej! Klar til at skrive på dansk? Hvordan føler du dig i dag?",
+    fi: "Hei! Valmis kirjoittamaan suomeksi? Miten sinusta tuntuu tänään?",
+    pl: "Cześć! Gotowy do pisania po polsku? Jak się dzisiaj czujesz?",
+    tr: "Merhaba! Türkçe yazmaya hazır mısın? Bugün nasıl hissediyorsun?",
+    he: "שלום! מוכן לכתוב בעברית? איך אתה מרגיש היום?",
+    th: "สวัสดี! พร้อมเขียนภาษาไทยแล้วหรือยัง? วันนี้คุณรู้สึกอย่างไร?",
+    vi: "Xin chào! Sẵn sàng viết bằng tiếng Việt chưa? Hôm nay bạn cảm thấy thế nào?",
+    id: "Halo! Siap menulis dalam bahasa Indonesia? Bagaimana perasaanmu hari ini?",
+    ms: "Hai! Sedia menulis dalam bahasa Melayu? Bagaimana perasaan anda hari ini?"
   };
   const PLACEHOLDERS = {
     en: "I feel...",
@@ -191,6 +240,24 @@ export default function JournalPage() {
     zh: "我觉得...",
     pt: "Eu me sinto...",
     it: "Mi sento...",
+    de: "Ich fühle mich...",
+    ja: "私は...感じます",
+    ko: "나는... 느낀다",
+    ru: "Я чувствую...",
+    ar: "أشعر...",
+    hi: "मैं महसूस करता हूं...",
+    nl: "Ik voel me...",
+    sv: "Jag känner mig...",
+    no: "Jeg føler meg...",
+    da: "Jeg føler mig...",
+    fi: "Tunnen itseni...",
+    pl: "Czuję się...",
+    tr: "Kendimi... hissediyorum",
+    he: "אני מרגיש...",
+    th: "ฉันรู้สึก...",
+    vi: "Tôi cảm thấy...",
+    id: "Saya merasa...",
+    ms: "Saya berasa..."
   };
 
   // Saved Words Feature
@@ -306,7 +373,7 @@ export default function JournalPage() {
           })}
         </div>
         <span
-          className={`fi fi-${language === 'en' ? 'us' : language === 'es' ? 'es' : language === 'fr' ? 'fr' : language === 'zh' ? 'cn' : language === 'pt' ? 'br' : language === 'it' ? 'it' : 'fr'}`}
+          className={`fi fi-${getFlagCode(language)}`}
           style={{ fontSize: 24, marginLeft: 16, cursor: 'pointer' }}
           aria-label="Language Flag"
           onClick={() => setShowLangSheet(true)}
