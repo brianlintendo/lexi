@@ -294,7 +294,6 @@ export default function ChatPage() {
                 if (input.trim()) handleSend(e);
               }
             }}
-            placeholder="type here"
             style={{
               marginTop: 24,
               width: '100%',
@@ -313,6 +312,7 @@ export default function ChatPage() {
               flex: 1,
               overflow: 'auto',
               display: 'block',
+              caretColor: '#7A54FF',
             }}
             disabled={loading}
           />
