@@ -68,7 +68,7 @@ function SettingsPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', flexDirection: 'column' }}>
       <TopNavHeader title="Settings" onBack={() => navigate(-1)} />
-      <div style={{ flex: 1, padding: '32px 24px 120px 24px' }}>
+      <div style={{ flex: 1, padding: '32px 24px 120px 24px', margin: 0 }}>
         {/* Authentication Section */}
         <div style={{ marginBottom: 32 }}>
           <h3 style={{ fontWeight: 700, fontSize: 20, marginBottom: 12 }}>Account</h3>
