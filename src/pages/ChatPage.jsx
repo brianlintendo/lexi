@@ -106,7 +106,7 @@ export default function ChatPage() {
             setMessages(prev => [...prev, { sender: 'ai', text: aiText, timestamp: new Date() }]);
             // OpenAI TTS integration
             try {
-              const followupMatch = aiText.match(/\*\*Follow-up:\*\*[\s\n]*([\s\S]*)/i);
+              const followupMatch = aiText.match(/\*\*Follow-up:\*\*[\s\n]*([\s\S]*?)(?=\*\*Follow-up Translation:|$)/i);
               const followupText = followupMatch ? followupMatch[1].trim() : '';
               if (followupText) {
                 const audioUrl = await openaiTTS(followupText, 'fable');
