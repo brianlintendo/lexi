@@ -48,7 +48,8 @@ export default function ChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile } = useProfile();
-  const [input, setInput] = useState(journalInput || '');
+  const [input, setInput] = useState('');
+  const inputRef = useRef(null);
   const [messages, setMessages] = useState(() => {
     const stored = localStorage.getItem('lexi-chat-messages');
     if (stored) {
@@ -75,6 +76,13 @@ export default function ChatPage() {
 
   // Track previous language for confirmation
   const prevLanguageRef = useRef(language);
+
+  // Focus input on mount
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -277,6 +285,7 @@ export default function ChatPage() {
         {loading && <ChatBubble sender="ai" loading />}
         {!loading && (
           <textarea
+            ref={inputRef}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => {
@@ -285,8 +294,7 @@ export default function ChatPage() {
                 if (input.trim()) handleSend(e);
               }
             }}
-            placeholder="Type your message..."
-            autoFocus
+            placeholder="type here"
             style={{
               marginTop: 24,
               width: '100%',
