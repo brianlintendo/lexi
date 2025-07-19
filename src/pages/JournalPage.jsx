@@ -145,16 +145,24 @@ export default function JournalPage() {
     if (stored) {
       try {
         const messages = JSON.parse(stored);
-        // Extract all user messages and format them as a journal entry
-        const userMessages = messages
-          .filter(msg => msg.sender === 'user')
-          .map(msg => msg.text)
-          .join('\n\n');
+        
+        // Extract all corrected entries from AI messages
+        const correctedEntries = messages
+          .filter(msg => msg.sender === 'ai')
+          .map(msg => {
+            // Parse the AI message to extract the corrected entry
+            const correctedMatch = msg.text.match(/\*\*Corrected Entry:\*\*[\s\n]*([\s\S]*?)(?=\*\*Key Corrections:|$)/i);
+            return correctedMatch ? correctedMatch[1].trim() : null;
+          })
+          .filter(entry => entry !== null); // Remove null entries
+        
+        // Join all corrected entries with newlines
+        const journalEntry = correctedEntries.join('\n\n');
         
         // Save as journal entry for today
         const todayKey = getDateKey(new Date());
-        setJournalEntries(prev => ({ ...prev, [todayKey]: userMessages }));
-        setText(userMessages);
+        setJournalEntries(prev => ({ ...prev, [todayKey]: journalEntry }));
+        setText(journalEntry);
         setShowCompletedEntry(true);
       } catch (error) {
         console.error('Error processing chat messages:', error);
