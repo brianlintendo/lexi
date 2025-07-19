@@ -231,15 +231,19 @@ body {
   }
 }
 
-/* Apply blinking animation only to the cursor */
+/* Ensure cursor blinks with custom color */
 textarea:focus {
   caret-color: #7A54FF;
-  animation: none;
+  caret-shape: block;
 }
 
-/* Ensure cursor blinks with custom color */
 textarea:focus::selection {
   background-color: rgba(122, 84, 255, 0.2);
+}
+
+/* Force cursor to blink */
+textarea {
+  caret-color: #7A54FF;
 }
 
 /* Container Styles */
