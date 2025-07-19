@@ -84,7 +84,7 @@ function getFlagCode(language) {
     'id': 'id',
     'ms': 'my'
   };
-  return flagMap[language] || 'fr';
+  return flagMap[language] || 'us';
 }
 
 function getDynamicPrompt(selectedDate, journalEntries, language) {
@@ -101,7 +101,7 @@ function getDynamicPrompt(selectedDate, journalEntries, language) {
   } else if (entryToday) {
     return `Great job writing today! Want to add more or reflect on something else?`;
   }
-  return PROMPT_BUBBLES[language] || PROMPT_BUBBLES['fr'];
+  return PROMPT_BUBBLES[language] || PROMPT_BUBBLES['en'];
 }
 
 export default function JournalPage() {
@@ -534,11 +534,11 @@ export default function JournalPage() {
             <div className="prompt-bubble">
               {aiPromptLoading
                 ? 'Lexi is thinking of a prompt...'
-                : aiPrompt || PROMPT_BUBBLES[lastLanguage] || PROMPT_BUBBLES['fr']}
+                : aiPrompt || PROMPT_BUBBLES[lastLanguage] || PROMPT_BUBBLES['en']}
             </div>
             <textarea
               className="journal-textarea"
-              placeholder={PLACEHOLDERS[language] || PLACEHOLDERS['fr']}
+              placeholder={PLACEHOLDERS[language] || PLACEHOLDERS['en']}
               value={text}
               onChange={handleTextChange}
               style={{ height: 'auto', minHeight: '40px' }}

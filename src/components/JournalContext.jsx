@@ -7,7 +7,7 @@ const ProfileContext = createContext();
 
 // Language mapping function to handle both codes and names
 const mapLanguageToCode = (language) => {
-  if (!language) return 'fr'; // default fallback
+  if (!language) return 'en'; // default fallback to English
   
   // If it's already a code, return it
   if (['en', 'es', 'fr', 'zh', 'pt', 'it', 'de', 'ja', 'ko', 'ru', 'ar', 'hi', 'nl', 'sv', 'no', 'da', 'fi', 'pl', 'tr', 'he', 'th', 'vi', 'id', 'ms'].includes(language)) {
@@ -42,12 +42,12 @@ const mapLanguageToCode = (language) => {
     'Malay': 'ms'
   };
   
-  return languageMap[language] || 'fr'; // fallback to French
+  return languageMap[language] || 'en'; // fallback to English
 };
 
 export function JournalProvider({ children }) {
   const [journalInput, setJournalInput] = useState('');
-  const [language, setLanguage] = useState('fr'); // default to French
+  const [language, setLanguage] = useState('en'); // default to English
   return (
     <JournalContext.Provider value={{ journalInput, setJournalInput, language, setLanguage }}>
       {children}
@@ -105,7 +105,7 @@ export function useProfile() {
 // Combined provider that handles profile-to-journal language sync
 export function AppProviders({ children }) {
   const [journalInput, setJournalInput] = useState('');
-  const [language, setLanguage] = useState('fr'); // default to French
+  const [language, setLanguage] = useState('en'); // default to English
   const { user } = useUser();
   const [profile, setProfile] = useState(null);
   const [profileError, setProfileError] = useState(null);
