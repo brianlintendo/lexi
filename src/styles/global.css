@@ -221,6 +221,7 @@ body {
   }
 }
 
+/* Custom cursor blinking animation */
 @keyframes blink {
   0%, 50% {
     opacity: 1;
@@ -228,6 +229,17 @@ body {
   51%, 100% {
     opacity: 0;
   }
+}
+
+/* Apply blinking animation only to the cursor */
+textarea:focus {
+  caret-color: #7A54FF;
+  animation: none;
+}
+
+/* Ensure cursor blinks with custom color */
+textarea:focus::selection {
+  background-color: rgba(122, 84, 255, 0.2);
 }
 
 /* Container Styles */

@@ -313,7 +313,6 @@ export default function ChatPage() {
               overflow: 'auto',
               display: 'block',
               caretColor: '#7A54FF',
-              animation: 'blink 1s infinite',
             }}
             disabled={loading}
           />
