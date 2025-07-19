@@ -294,6 +294,7 @@ export default function ChatPage() {
                 if (input.trim()) handleSend(e);
               }
             }}
+            placeholder={!input.trim() ? "Keep journaling..." : ""}
             style={{
               marginTop: 24,
               width: '100%',
