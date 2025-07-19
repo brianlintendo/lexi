@@ -221,6 +221,15 @@ body {
   }
 }
 
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
 /* Container Styles */
 .container {
   max-width: 550px;

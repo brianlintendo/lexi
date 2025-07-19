@@ -297,7 +297,7 @@ export default function ChatPage() {
             style={{
               marginTop: 24,
               width: '100%',
-              fontSize: 16,
+              fontSize: 20,
               fontFamily: 'Albert Sans, sans-serif',
               color: '#212121',
               background: 'transparent',
@@ -306,13 +306,14 @@ export default function ChatPage() {
               resize: 'none',
               padding: 0,
               boxShadow: 'none',
-              lineHeight: '28px',
+              lineHeight: '32px',
               minHeight: '180px',
               height: '100%',
               flex: 1,
               overflow: 'auto',
               display: 'block',
               caretColor: '#7A54FF',
+              animation: 'blink 1s infinite',
             }}
             disabled={loading}
           />
