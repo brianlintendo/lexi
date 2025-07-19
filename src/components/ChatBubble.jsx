@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SavedPhraseSheet from './SavedPhraseSheet';
+import FollowupSheet from './FollowupSheet';
 import { useUser } from '../hooks/useAuth';
 import { addSavedPhrase, checkPhraseExists } from '../api/savedPhrases';
 
@@ -21,7 +22,9 @@ export default function ChatBubble({ sender, text, loading, userText }) {
   // Always use Albert Sans for AI
   const fontFamily = 'Albert Sans, sans-serif';
   const [showPhraseSheet, setShowPhraseSheet] = useState(false);
+  const [showFollowupSheet, setShowFollowupSheet] = useState(false);
   const [phraseData, setPhraseData] = useState({ phrase: '', translation: '' });
+  const [followupData, setFollowupData] = useState({ phrase: '', translation: '' });
 
   if (loading) {
     if (sender === 'ai') {
@@ -71,20 +74,22 @@ export default function ChatBubble({ sender, text, loading, userText }) {
     );
   }
   if (sender === 'ai') {
-    // Parse Lexi's new four-section format
-    let corrected = null, corrections = null, phrase = null, vocab = null, followup = null;
+    // Parse Lexi's new five-section format
+    let corrected = null, corrections = null, phrase = null, vocab = null, followup = null, followupTranslation = null;
     if (typeof text === 'string') {
       // Use regex to extract sections
       const correctedMatch = text.match(/\*\*Corrected Entry:\*\*[\s\n]*([\s\S]*?)(?=\*\*Key Corrections:|$)/i);
       const correctionsMatch = text.match(/\*\*Key Corrections:\*\*[\s\n]*([\s\S]*?)(?=\*\*Phrase to Remember:|$)/i);
       const phraseMatch = text.match(/\*\*Phrase to Remember:\*\*[\s\n]*([\s\S]*?)(?=\*\*Vocabulary Enhancer:|\*\*Follow-up:|$)/i);
       const vocabMatch = text.match(/\*\*Vocabulary Enhancer:\*\*[\s\n]*([\s\S]*?)(?=\*\*Follow-up:|$)/i);
-      const followupMatch = text.match(/\*\*Follow-up:\*\*[\s\n]*([\s\S]*)/i);
+      const followupMatch = text.match(/\*\*Follow-up:\*\*[\s\n]*([\s\S]*?)(?=\*\*Follow-up Translation:|$)/i);
+      const followupTranslationMatch = text.match(/\*\*Follow-up Translation:\*\*[\s\n]*([\s\S]*)/i);
       corrected = correctedMatch ? correctedMatch[1].trim() : null;
       corrections = correctionsMatch ? correctionsMatch[1].trim() : null;
       phrase = phraseMatch ? phraseMatch[1].trim() : null;
       vocab = vocabMatch ? vocabMatch[1].trim() : null;
       followup = followupMatch ? followupMatch[1].trim() : null;
+      followupTranslation = followupTranslationMatch ? followupTranslationMatch[1].trim() : null;
     }
     // If none of the sections are found, render the raw text
     if (!corrected && !corrections && !phrase && !vocab && !followup) {
@@ -140,7 +145,26 @@ export default function ChatBubble({ sender, text, loading, userText }) {
               boxShadow: '0 2px 12px 0 rgba(122,84,255,0.08)'
             }}>
               {followup && (
-                <div style={{marginBottom:14, fontStyle:'italic', color:'#009688', fontWeight:500, fontSize:17}}>
+                <div 
+                  style={{
+                    marginBottom: 14, 
+                    fontStyle: 'italic', 
+                    color: '#009688', 
+                    fontWeight: 500, 
+                    fontSize: 17,
+                    textDecoration: 'underline',
+                    textDecorationStyle: 'dotted',
+                    textDecorationColor: '#009688',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => {
+                    setFollowupData({ 
+                      phrase: followup, 
+                      translation: followupTranslation || 'Follow-up question'
+                    });
+                    setShowFollowupSheet(true);
+                  }}
+                >
                   {followup}
                 </div>
               )}
@@ -226,6 +250,13 @@ export default function ChatBubble({ sender, text, loading, userText }) {
               // Handle phrase added callback if needed
               console.log('Phrase added:', result);
             }}
+          />
+        )}
+        {showFollowupSheet && (
+          <FollowupSheet 
+            isOpen={showFollowupSheet}
+            onClose={() => setShowFollowupSheet(false)}
+            followupData={followupData}
           />
         )}
       </>
