@@ -165,8 +165,16 @@ export default function JournalPage() {
         
         // Save as journal entry for today
         const todayKey = getDateKey(new Date());
-        setJournalEntries(prev => ({ ...prev, [todayKey]: journalEntry }));
+        setJournalEntries(prev => ({ 
+          ...prev, 
+          [todayKey]: {
+            text: journalEntry,
+            submitted: true
+          }
+        }));
         setText(journalEntry);
+        // Mark as submitted in localStorage
+        localStorage.setItem(`submitted-${todayKey}`, 'true');
         setShowCompletedEntry(true);
         
         // Save to Supabase if user is logged in
@@ -189,11 +197,21 @@ export default function JournalPage() {
       } catch (error) {
         console.error('Error processing chat messages:', error);
       }
-    } else {
-      // No chat messages, save current manual text entry
-      if (user?.id && text.trim()) {
-        const entryDate = selectedKey;
-        insertEntry(user.id, text, null, entryDate)
+          } else {
+        // No chat messages, save current manual text entry
+        if (user?.id && text.trim()) {
+          const entryDate = selectedKey;
+          // Mark as submitted in localStorage
+          localStorage.setItem(`submitted-${entryDate}`, 'true');
+          // Update local state to mark as submitted
+          setJournalEntries(prev => ({
+            ...prev,
+            [entryDate]: {
+              text: text,
+              submitted: true
+            }
+          }));
+          insertEntry(user.id, text, null, entryDate)
           .then(({ error }) => {
             if (error) {
               console.error('Error saving manual entry to Supabase:', error);
@@ -238,7 +256,10 @@ export default function JournalPage() {
               try {
                 const parsed = JSON.parse(stored);
                 setJournalEntries(parsed);
-                if (parsed[selectedKey]) setText(parsed[selectedKey]);
+                if (parsed[selectedKey]) {
+                  const entryText = typeof parsed[selectedKey] === 'object' ? parsed[selectedKey].text : parsed[selectedKey];
+                  setText(entryText);
+                }
               } catch {}
             }
           } else {
@@ -246,11 +267,18 @@ export default function JournalPage() {
             const entries = {};
             data?.forEach(entry => {
               const dateKey = entry.entry_date || getDateKey(new Date(entry.created_at));
-              entries[dateKey] = entry.entry_text;
+              entries[dateKey] = {
+                text: entry.entry_text,
+                ai_reply: entry.ai_reply,
+                submitted: !!entry.ai_reply // If there's an AI reply, it was submitted
+              };
             });
             setJournalEntries(entries);
             // If current selected date has an entry, load it
-            if (entries[selectedKey]) setText(entries[selectedKey]);
+            if (entries[selectedKey]) {
+              const entryText = typeof entries[selectedKey] === 'object' ? entries[selectedKey].text : entries[selectedKey];
+              setText(entryText);
+            }
             // Also save to localStorage as cache
             localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
           }
@@ -264,7 +292,10 @@ export default function JournalPage() {
             try {
               const parsed = JSON.parse(stored);
               setJournalEntries(parsed);
-              if (parsed[selectedKey]) setText(parsed[selectedKey]);
+              if (parsed[selectedKey]) {
+                const entryText = typeof parsed[selectedKey] === 'object' ? parsed[selectedKey].text : parsed[selectedKey];
+                setText(entryText);
+              }
             } catch {}
           }
         })
@@ -278,7 +309,10 @@ export default function JournalPage() {
         try {
           const parsed = JSON.parse(stored);
           setJournalEntries(parsed);
-          if (parsed[selectedKey]) setText(parsed[selectedKey]);
+          if (parsed[selectedKey]) {
+            const entryText = typeof parsed[selectedKey] === 'object' ? parsed[selectedKey].text : parsed[selectedKey];
+            setText(entryText);
+          }
         } catch {}
       }
     }
@@ -322,7 +356,14 @@ export default function JournalPage() {
     const newText = e.target.value;
     setText(newText);
     setJournalInput(newText); // <-- update context
-    setJournalEntries((prev) => ({ ...prev, [selectedKey]: newText }));
+    // Save as draft (not submitted yet)
+    setJournalEntries((prev) => ({ 
+      ...prev, 
+      [selectedKey]: {
+        text: newText,
+        submitted: false
+      }
+    }));
     
     // Auto-resize textarea
     const textarea = e.target;
@@ -334,7 +375,13 @@ export default function JournalPage() {
   const handleDateClick = (date) => {
     setSelectedDate(date);
     const key = getDateKey(date);
-    setText(journalEntries[key] || '');
+    const entry = journalEntries[key];
+    if (entry) {
+      const entryText = typeof entry === 'object' ? entry.text : entry;
+      setText(entryText);
+    } else {
+      setText('');
+    }
   };
 
   const PROMPT_BUBBLES = {
@@ -470,6 +517,11 @@ export default function JournalPage() {
             const isActive = key === getDateKey(selectedDate);
             const isToday = key === todayKey;
             const hasEntry = !!journalEntries[key];
+            // Check if entry has been submitted (has AI reply or was saved via "End" button)
+            const hasSubmittedEntry = !!journalEntries[key] && (
+              (typeof journalEntries[key] === 'object' && (journalEntries[key].ai_reply || journalEntries[key].submitted)) ||
+              (typeof journalEntries[key] === 'string' && localStorage.getItem(`submitted-${key}`))
+            );
             return (
               <div
                 className={`weekday${isActive ? ' selected' : ''}${isToday ? ' today' : ''}`}
@@ -479,7 +531,7 @@ export default function JournalPage() {
               >
                 <div className="weekday-label">{weekdays[date.getDay() === 0 ? 6 : date.getDay() - 1]}</div>
                 <div className="weekday-date">
-                  {hasEntry ? (
+                  {hasSubmittedEntry ? (
                     <img 
                       src={tickIcon} 
                       alt="Entry completed" 
