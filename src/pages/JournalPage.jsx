@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../styles/global.css';
 import micIcon from '../assets/icons/mic.svg';
 import sendIcon from '../assets/icons/send.svg';
@@ -171,7 +171,7 @@ export default function JournalPage() {
         // Save to Supabase if user is logged in
         if (user?.id && journalEntry.trim()) {
           const todayKey = getDateKey(new Date());
-          upsertEntry(user.id, journalEntry, null, todayKey) // Use upsert for chat entries
+          insertEntry(user.id, journalEntry, null, todayKey) // Use insert for now until constraint is set up
             .then(({ error }) => {
               if (error) {
                 console.error('Error saving chat entry to Supabase:', error);
@@ -271,7 +271,7 @@ export default function JournalPage() {
           // Upload any local entries that aren't in Supabase yet
           Object.entries(localEntries).forEach(([dateKey, entryText]) => {
             if (entryText && entryText.trim()) {
-              upsertEntry(user.id, entryText, null, dateKey)
+              insertEntry(user.id, entryText, null, dateKey)
                 .then(({ error }) => {
                   if (error) {
                     console.error('Error syncing local entry to Supabase:', error);
@@ -294,6 +294,9 @@ export default function JournalPage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(journalEntries));
   }, [journalEntries]);
 
+  // Debounced save function
+  const debouncedSave = useRef(null);
+
   // Save entry for selected date
   const handleTextChange = (e) => {
     const newText = e.target.value;
@@ -306,22 +309,29 @@ export default function JournalPage() {
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
     
-    // Save to Supabase if user is logged in
+    // Clear previous timeout
+    if (debouncedSave.current) {
+      clearTimeout(debouncedSave.current);
+    }
+    
+    // Debounced save to Supabase (only save after user stops typing for 1 second)
     if (user?.id && newText.trim()) {
-      const entryDate = selectedKey;
-      upsertEntry(user.id, newText, null, entryDate) // Use upsert for updates
-        .then(({ error }) => {
-          if (error) {
-            console.error('Error saving to Supabase:', error);
+      debouncedSave.current = setTimeout(() => {
+        const entryDate = selectedKey;
+        insertEntry(user.id, newText, null, entryDate) // Use insert for now until constraint is set up
+          .then(({ error }) => {
+            if (error) {
+              console.error('Error saving to Supabase:', error);
+              setError('Failed to save entry to cloud');
+            } else {
+              setError(null);
+            }
+          })
+          .catch(err => {
+            console.error('Error saving to Supabase:', err);
             setError('Failed to save entry to cloud');
-          } else {
-            setError(null);
-          }
-        })
-        .catch(err => {
-          console.error('Error saving to Supabase:', err);
-          setError('Failed to save entry to cloud');
-        });
+          });
+      }, 1000); // Wait 1 second after user stops typing
     }
   };
 
