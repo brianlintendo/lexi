@@ -473,28 +473,19 @@ export default function JournalPage() {
                 style={{ position: 'relative' }}
               >
                 <div className="weekday-label">{weekdays[date.getDay() === 0 ? 6 : date.getDay() - 1]}</div>
-                <div className="weekday-date">{date.getDate()}</div>
-                {hasEntry && (
-                  <span
-                    style={{
-                      position: 'absolute',
-                      right: 2,
-                      top: 2,
-                      fontSize: 14,
+                <div className="weekday-date">
+                  {hasEntry ? (
+                    <span style={{
                       color: isActive ? '#fff' : '#7A54FF',
-                      background: isActive ? '#7A54FF' : 'transparent',
-                      borderRadius: '50%',
-                      width: 18,
-                      height: 18,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                    aria-label="Has entry"
-                  >
-                    ✓
-                  </span>
-                )}
+                      fontSize: '16px',
+                      fontWeight: 'bold'
+                    }}>
+                      ✓
+                    </span>
+                  ) : (
+                    date.getDate()
+                  )}
+                </div>
                 {isToday && !isActive && (
                   <span
                     style={{
