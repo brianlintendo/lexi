@@ -650,9 +650,9 @@ export default function JournalPage() {
                 <p key={index} style={{
                   margin: index > 0 ? '16px 0 0 0' : '0 0 16px 0',
                   padding: 0
-                }}>
-                  {paragraph}
-                </p>
+                }}
+                dangerouslySetInnerHTML={{ __html: paragraph.replace(/&lt;/g, '<').replace(/&gt;/g, '>') }}
+                />
               ))}
           </div>
         ) : chatPreview ? (
