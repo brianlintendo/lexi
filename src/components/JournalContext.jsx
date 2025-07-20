@@ -70,8 +70,14 @@ export function ProfileProvider({ children }) {
     if (user?.id) {
       setProfileLoading(true);
       getProfile(user.id)
-        .then(setProfile)
-        .catch(err => setProfileError(err.message))
+        .then(profileData => {
+          console.log('Loaded profile data:', profileData);
+          setProfile(profileData);
+        })
+        .catch(err => {
+          console.error('Error loading profile:', err);
+          setProfileError(err.message);
+        })
         .finally(() => setProfileLoading(false));
     } else {
       setProfile(null);

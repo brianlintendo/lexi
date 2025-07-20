@@ -275,8 +275,12 @@ export default function VoiceJournal() {
   const handleSend = async () => {
     if (!entry.trim()) return;
     let systemPrompt;
+    console.log('VoiceJournal - Profile proficiency:', profile?.proficiency);
     if (profile?.proficiency) {
       systemPrompt = getProficiencyPrompt(profile.proficiency);
+      console.log('VoiceJournal - Using proficiency-adjusted system prompt for level:', profile.proficiency);
+    } else {
+      console.log('VoiceJournal - No proficiency found, using default system prompt');
     }
     const aiReply = await getChatCompletion(entry, systemPrompt);
     handleAIReply(entry, aiReply);

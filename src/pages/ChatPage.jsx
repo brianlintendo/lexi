@@ -116,9 +116,13 @@ export default function ChatPage() {
           setLoading(true);
           try {
             let systemPrompt;
+            console.log('Profile proficiency:', profile?.proficiency);
             if (profile?.proficiency) {
               // Adjust system prompt based on proficiency
               systemPrompt = getProficiencyPrompt(profile.proficiency);
+              console.log('Using proficiency-adjusted system prompt for level:', profile.proficiency);
+            } else {
+              console.log('No proficiency found, using default system prompt');
             }
             const aiText = await getChatCompletion(last.text, systemPrompt);
             setMessages(prev => [...prev, { sender: 'ai', text: aiText, timestamp: new Date() }]);
