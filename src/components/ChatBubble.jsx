@@ -252,7 +252,7 @@ export default function ChatBubble({ sender, text, loading, userText }) {
                   {corrected && (
                     <div style={{marginBottom:10}}>
                       <span style={{fontWeight:700}}>Corrected Entry:</span><br/>
-                      <span dangerouslySetInnerHTML={{__html: corrected}} />
+                      <span dangerouslySetInnerHTML={{__html: corrected.replace(/&lt;/g, '<').replace(/&gt;/g, '>')}} />
                     </div>
                   )}
                   {corrections && (
@@ -261,7 +261,7 @@ export default function ChatBubble({ sender, text, loading, userText }) {
                       <ul style={{margin:'6px 0 0 18px', padding:0, color:'#444', fontWeight:400, fontSize:15}}>
                         {corrections.split(/\n|\r/).filter(Boolean).map((line,i) => (
                           <li key={i}>
-                            <span dangerouslySetInnerHTML={{__html: line}} />
+                            <span dangerouslySetInnerHTML={{__html: line.replace(/&lt;/g, '<').replace(/&gt;/g, '>')}} />
                           </li>
                         ))}
                       </ul>

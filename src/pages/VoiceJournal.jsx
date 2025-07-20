@@ -432,7 +432,7 @@ export default function VoiceJournal() {
             {aiSections.corrected && (
               <div style={{ marginBottom: 12 }}>
                 <span style={{ fontWeight: 700, color: '#7A54FF' }}>Corrected Entry:</span><br />
-                <span dangerouslySetInnerHTML={{ __html: aiSections.corrected }} />
+                <span dangerouslySetInnerHTML={{ __html: aiSections.corrected.replace(/&lt;/g, '<').replace(/&gt;/g, '>') }} />
               </div>
             )}
             {aiSections.corrections && (
@@ -440,7 +440,7 @@ export default function VoiceJournal() {
                 <span style={{ fontWeight: 700, color: '#7A54FF' }}>Key Corrections:</span>
                 <ul style={{ margin: '8px 0 0 20px', padding: 0, color: '#444', fontWeight: 400, fontSize: 15 }}>
                   {aiSections.corrections.split(/\n|\r/).filter(Boolean).map((line, i) => (
-                    <li key={i} dangerouslySetInnerHTML={{ __html: line }} />
+                    <li key={i} dangerouslySetInnerHTML={{ __html: line.replace(/&lt;/g, '<').replace(/&gt;/g, '>') }} />
                   ))}
                 </ul>
               </div>
