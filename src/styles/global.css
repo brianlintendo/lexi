@@ -757,7 +757,7 @@ textarea {
 }
 
 .send-btn {
-  background: #7A54FF;
+  background: linear-gradient(353deg, #5F46B4 26.75%, #7860CC 79.09%);
   color: #fff;
   border-radius: 50%;
   width: 80px; height: 80px;

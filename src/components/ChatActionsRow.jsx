@@ -42,7 +42,7 @@ export default function ChatActionsRow({ onSpeak, onSend, onImage, sendDisabled 
             width: sendBtnSize,
             height: sendBtnSize,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #7A54FF 0%, #00C853 100%)',
+            background: 'linear-gradient(353deg, #5F46B4 26.75%, #7860CC 79.09%)',
             boxShadow: '0 4px 16px 0 rgba(122,84,255,0.18)',
             border: 'none',
             display: 'flex',

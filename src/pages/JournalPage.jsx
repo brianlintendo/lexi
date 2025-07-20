@@ -495,7 +495,7 @@ export default function JournalPage() {
                       transform: 'translateX(-50%)',
                       width: 6,
                       height: 6,
-                      background: '#00C853',
+                      background: '#7A54FF',
                       borderRadius: '50%',
                       display: 'block',
                     }}

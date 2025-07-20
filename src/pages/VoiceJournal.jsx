@@ -491,7 +491,7 @@ export default function VoiceJournal() {
               onClick={handleSend}
               style={{
                 width: '100%',
-                background: '#8854ff',
+                background: 'linear-gradient(353deg, #5F46B4 26.75%, #7860CC 79.09%)',
                 color: '#fff',
                 border: 'none',
                 borderRadius: 8,
