@@ -26,6 +26,32 @@ export default function ChatBubble({ sender, text, loading, userText }) {
   const [phraseData, setPhraseData] = useState({ phrase: '', translation: '' });
   const [followupData, setFollowupData] = useState({ phrase: '', translation: '' });
 
+  // Check if this is an initial prompt (not a structured AI response)
+  const isInitialPrompt = (text) => {
+    const initialPrompts = [
+      "Hello! I'm Lexi. Ready to write in English? How are you feeling today?",
+      "¡Hola! Soy Lexi. ¿Listo(a) para escribir en español? ¿Cómo te sientes hoy?",
+      "Bonjour ! Je suis Lexi. Prêt(e) à écrire en français ? Comment tu te sens aujourd'hui ?",
+      "你好！我是 Lexi。准备好用中文写作了吗？你今天感觉怎么样？",
+      "Olá! Eu sou a Lexi. Pronto(a) para escrever em português? Como você está se sentindo hoje?",
+      "Ciao! Sono Lexi. Pronto(a) a scrivere in italiano? Come ti senti oggi?"
+    ];
+    return initialPrompts.includes(text);
+  };
+
+  // Get translation for initial prompt
+  const getInitialPromptTranslation = (text) => {
+    const translations = {
+      "Hello! I'm Lexi. Ready to write in English? How are you feeling today?": "Hello! I'm Lexi. Ready to write in English? How are you feeling today?",
+      "¡Hola! Soy Lexi. ¿Listo(a) para escribir en español? ¿Cómo te sientes hoy?": "Hello! I'm Lexi. Ready to write in Spanish? How are you feeling today?",
+      "Bonjour ! Je suis Lexi. Prêt(e) à écrire en français ? Comment tu te sens aujourd'hui ?": "Hello! I'm Lexi. Ready to write in French? How are you feeling today?",
+      "你好！我是 Lexi。准备好用中文写作了吗？你今天感觉怎么样？": "Hello! I'm Lexi. Ready to write in Chinese? How are you feeling today?",
+      "Olá! Eu sou a Lexi. Pronto(a) para escrever em português? Como você está se sentindo hoje?": "Hello! I'm Lexi. Ready to write in Portuguese? How are you feeling today?",
+      "Ciao! Sono Lexi. Pronto(a) a scrivere in italiano? Come ti senti oggi?": "Hello! I'm Lexi. Ready to write in Italian? How are you feeling today?"
+    };
+    return translations[text] || '';
+  };
+
   if (loading) {
     if (sender === 'ai') {
       return (
@@ -91,8 +117,63 @@ export default function ChatBubble({ sender, text, loading, userText }) {
       followup = followupMatch ? followupMatch[1].trim() : null;
       followupTranslation = followupTranslationMatch ? followupTranslationMatch[1].trim() : null;
     }
-    // If none of the sections are found, render the raw text
+    // If none of the sections are found, check if it's an initial prompt
     if (!corrected && !corrections && !phrase && !vocab && !followup) {
+      if (isInitialPrompt(text)) {
+        return (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 20 }}>
+              <div style={{
+                background: 'linear-gradient(90deg, #7A54FF, #00C853)',
+                borderRadius: 24,
+                padding: 2,
+                display: 'inline-block',
+                boxShadow: '0 2px 12px 0 rgba(122,84,255,0.08)'
+              }}>
+                <div style={{
+                  background: '#fff',
+                  borderRadius: 22,
+                  padding: '18px 24px',
+                  minWidth: 60,
+                  maxWidth: 340,
+                  fontFamily,
+                  fontSize: 17,
+                  lineHeight: 1.7,
+                  color: '#7A54FF',
+                  fontWeight: 500,
+                  boxShadow: '0 2px 12px 0 rgba(122,84,255,0.08)'
+                }}>
+                  <div 
+                    style={{
+                      textDecoration: 'underline',
+                      textDecorationStyle: 'dotted',
+                      textDecorationColor: '#7A54FF',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => {
+                      setFollowupData({ 
+                        phrase: text, 
+                        translation: getInitialPromptTranslation(text)
+                      });
+                      setShowFollowupSheet(true);
+                    }}
+                  >
+                    {text}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {showFollowupSheet && (
+              <FollowupSheet 
+                isOpen={showFollowupSheet}
+                onClose={() => setShowFollowupSheet(false)}
+                followupData={followupData}
+              />
+            )}
+          </>
+        );
+      }
+      // If not an initial prompt, render as raw text
       return (
         <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 20 }}>
           <div style={{

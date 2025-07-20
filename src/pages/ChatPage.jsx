@@ -12,12 +12,30 @@ import { useLocation } from 'react-router-dom';
 import { useProfile } from '../components/JournalContext';
 
 const PROMPTS = {
-  en: `Hello! I'm Lexi. Ready to write in English? How are you feeling today?`,
-  es: `¡Hola! Soy Lexi. ¿Listo(a) para escribir en español? ¿Cómo te sientes hoy?`,
-  fr: `Bonjour ! Je suis Lexi. Prêt(e) à écrire en français ? Comment tu te sens aujourd'hui ?`,
-  zh: `你好！我是 Lexi。准备好用中文写作了吗？你今天感觉怎么样？`,
-  pt: `Olá! Eu sou a Lexi. Pronto(a) para escrever em português? Como você está se sentindo hoje?`,
-  it: `Ciao! Sono Lexi. Pronto(a) a scrivere in italiano? Come ti senti oggi?`,
+  en: {
+    text: `Hello! I'm Lexi. Ready to write in English? How are you feeling today?`,
+    translation: `Hello! I'm Lexi. Ready to write in English? How are you feeling today?`
+  },
+  es: {
+    text: `¡Hola! Soy Lexi. ¿Listo(a) para escribir en español? ¿Cómo te sientes hoy?`,
+    translation: `Hello! I'm Lexi. Ready to write in Spanish? How are you feeling today?`
+  },
+  fr: {
+    text: `Bonjour ! Je suis Lexi. Prêt(e) à écrire en français ? Comment tu te sens aujourd'hui ?`,
+    translation: `Hello! I'm Lexi. Ready to write in French? How are you feeling today?`
+  },
+  zh: {
+    text: `你好！我是 Lexi。准备好用中文写作了吗？你今天感觉怎么样？`,
+    translation: `Hello! I'm Lexi. Ready to write in Chinese? How are you feeling today?`
+  },
+  pt: {
+    text: `Olá! Eu sou a Lexi. Pronto(a) para escrever em português? Como você está se sentindo hoje?`,
+    translation: `Hello! I'm Lexi. Ready to write in Portuguese? How are you feeling today?`
+  },
+  it: {
+    text: `Ciao! Sono Lexi. Pronto(a) a scrivere in italiano? Come ti senti oggi?`,
+    translation: `Hello! I'm Lexi. Ready to write in Italian? How are you feeling today?`
+  },
 };
 const SYSTEM_PROMPTS = {
   en: `You are a friendly, lightly humorous language tutor and conversation partner. When the user submits a sentence or short text in any language, you will: 1. Repeat back their original text (in quotes). 2. Offer a playful, kind correction: point out mistakes in grammar or word choice, rewrite their sentence correctly, and include a light joke or friendly quip. 3. Briefly explain the main correction in simple terms (one or two sentences). 4. Ask a natural follow-up question about their text to keep the conversation going, related to what they wrote. Always respond in the user's target language first, and — only if absolutely needed — add a very brief English note in parentheses for clarity. Keep your tone upbeat, encouraging, and fun.`,
@@ -57,12 +75,12 @@ export default function ChatPage() {
         return JSON.parse(stored);
       } catch {
         return [
-          { sender: 'ai', text: PROMPTS[language] || PROMPTS['fr'], timestamp: new Date() }
+          { sender: 'ai', text: (PROMPTS[language] || PROMPTS['fr']).text, timestamp: new Date() }
         ];
       }
     }
     return [
-      { sender: 'ai', text: PROMPTS[language] || PROMPTS['fr'], timestamp: new Date() }
+      { sender: 'ai', text: (PROMPTS[language] || PROMPTS['fr']).text, timestamp: new Date() }
     ];
   });
   const [loading, setLoading] = useState(false);
@@ -135,7 +153,7 @@ export default function ChatPage() {
     if (prevLanguageRef.current !== language) {
       if (window.confirm('Changing language will reset your current conversation. Continue?')) {
         setMessages([
-          { sender: 'ai', text: PROMPTS[language] || PROMPTS['fr'], timestamp: new Date() }
+          { sender: 'ai', text: (PROMPTS[language] || PROMPTS['fr']).text, timestamp: new Date() }
         ]);
         setInput('');
         localStorage.removeItem('lexi-chat-messages');
@@ -183,7 +201,7 @@ export default function ChatPage() {
   const handleNewConversation = () => {
     if (window.confirm('Start a new conversation? This will clear your current chat history.')) {
       setMessages([
-        { sender: 'ai', text: PROMPTS[language] || PROMPTS['fr'], timestamp: new Date() }
+        { sender: 'ai', text: (PROMPTS[language] || PROMPTS['fr']).text, timestamp: new Date() }
       ]);
       setInput('');
       localStorage.removeItem('lexi-chat-messages');
