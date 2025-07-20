@@ -14,6 +14,7 @@ import 'flag-icons/css/flag-icons.min.css';
 import { useJournal } from '../components/JournalContext';
 import LanguageSheet from '../components/LanguageSheet';
 import bookSavedIcon from '../assets/icons/book-saved.svg';
+import tickIcon from '../assets/icons/tick.svg';
 import { useUser } from '../hooks/useAuth';
 import BottomNav from '../components/BottomNav';
 import { getChatCompletion } from '../openai';
@@ -479,13 +480,15 @@ export default function JournalPage() {
                 <div className="weekday-label">{weekdays[date.getDay() === 0 ? 6 : date.getDay() - 1]}</div>
                 <div className="weekday-date">
                   {hasEntry ? (
-                    <span style={{
-                      color: '#7A54FF',
-                      fontSize: '16px',
-                      fontWeight: 'bold'
-                    }}>
-                      ✓
-                    </span>
+                    <img 
+                      src={tickIcon} 
+                      alt="Entry completed" 
+                      style={{
+                        width: '14px',
+                        height: '14px',
+                        filter: 'brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(246deg) brightness(104%) contrast(97%)'
+                      }}
+                    />
                   ) : (
                     date.getDate()
                   )}
