@@ -17,6 +17,7 @@ import bookSavedIcon from '../assets/icons/book-saved.svg';
 import { useUser } from '../hooks/useAuth';
 import BottomNav from '../components/BottomNav';
 import { getChatCompletion } from '../openai';
+import { insertEntry, fetchEntries, upsertEntry, deleteEntry } from '../api/journal';
 
 // Lucide placeholders for missing icons
 const JournalIcon = (props) => (
@@ -114,6 +115,8 @@ export default function JournalPage() {
   const { journalInput, setJournalInput, language, setLanguage } = useJournal();
   const [showLangSheet, setShowLangSheet] = useState(false);
   const { user } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Conversation preview logic
   const [chatPreview, setChatPreview] = useState(null);
@@ -164,6 +167,24 @@ export default function JournalPage() {
         setJournalEntries(prev => ({ ...prev, [todayKey]: journalEntry }));
         setText(journalEntry);
         setShowCompletedEntry(true);
+        
+        // Save to Supabase if user is logged in
+        if (user?.id && journalEntry.trim()) {
+          const todayKey = getDateKey(new Date());
+          upsertEntry(user.id, journalEntry, null, todayKey) // Use upsert for chat entries
+            .then(({ error }) => {
+              if (error) {
+                console.error('Error saving chat entry to Supabase:', error);
+                setError('Failed to save entry to cloud');
+              } else {
+                setError(null);
+              }
+            })
+            .catch(err => {
+              console.error('Error saving chat entry to Supabase:', err);
+              setError('Failed to save entry to cloud');
+            });
+        }
       } catch (error) {
         console.error('Error processing chat messages:', error);
       }
@@ -177,19 +198,96 @@ export default function JournalPage() {
   const selectedKey = getDateKey(selectedDate);
   const todayKey = getDateKey(today);
 
-  // Load from localStorage on mount
+  // Load journal entries from Supabase on mount
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setJournalEntries(parsed);
-        // If current selected date has an entry, load it
-        if (parsed[selectedKey]) setText(parsed[selectedKey]);
-      } catch {}
+    if (user?.id) {
+      setLoading(true);
+      setError(null);
+      
+      fetchEntries(user.id)
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Error fetching journal entries:', error);
+            setError('Failed to load journal entries');
+            // Fallback to localStorage if Supabase fails
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+              try {
+                const parsed = JSON.parse(stored);
+                setJournalEntries(parsed);
+                if (parsed[selectedKey]) setText(parsed[selectedKey]);
+              } catch {}
+            }
+          } else {
+            // Convert Supabase data to local format
+            const entries = {};
+            data?.forEach(entry => {
+              const dateKey = entry.entry_date || getDateKey(new Date(entry.created_at));
+              entries[dateKey] = entry.entry_text;
+            });
+            setJournalEntries(entries);
+            // If current selected date has an entry, load it
+            if (entries[selectedKey]) setText(entries[selectedKey]);
+            // Also save to localStorage as cache
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching journal entries:', err);
+          setError('Failed to load journal entries');
+          // Fallback to localStorage
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored);
+              setJournalEntries(parsed);
+              if (parsed[selectedKey]) setText(parsed[selectedKey]);
+            } catch {}
+          }
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      // If no user, try localStorage as fallback
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setJournalEntries(parsed);
+          if (parsed[selectedKey]) setText(parsed[selectedKey]);
+        } catch {}
+      }
     }
-    // eslint-disable-next-line
-  }, []);
+  }, [user?.id, selectedKey]);
+
+  // Sync localStorage with Supabase when user logs in
+  useEffect(() => {
+    if (user?.id) {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          const localEntries = JSON.parse(stored);
+          // Upload any local entries that aren't in Supabase yet
+          Object.entries(localEntries).forEach(([dateKey, entryText]) => {
+            if (entryText && entryText.trim()) {
+              upsertEntry(user.id, entryText, null, dateKey)
+                .then(({ error }) => {
+                  if (error) {
+                    console.error('Error syncing local entry to Supabase:', error);
+                  }
+                })
+                .catch(err => {
+                  console.error('Error syncing local entry to Supabase:', err);
+                });
+            }
+          });
+        } catch (error) {
+          console.error('Error parsing local entries for sync:', error);
+        }
+      }
+    }
+  }, [user?.id]);
 
   // Save to localStorage whenever journalEntries changes
   useEffect(() => {
@@ -198,14 +296,33 @@ export default function JournalPage() {
 
   // Save entry for selected date
   const handleTextChange = (e) => {
-    setText(e.target.value);
-    setJournalInput(e.target.value); // <-- update context
-    setJournalEntries((prev) => ({ ...prev, [selectedKey]: e.target.value }));
+    const newText = e.target.value;
+    setText(newText);
+    setJournalInput(newText); // <-- update context
+    setJournalEntries((prev) => ({ ...prev, [selectedKey]: newText }));
     
     // Auto-resize textarea
     const textarea = e.target;
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
+    
+    // Save to Supabase if user is logged in
+    if (user?.id && newText.trim()) {
+      const entryDate = selectedKey;
+      upsertEntry(user.id, newText, null, entryDate) // Use upsert for updates
+        .then(({ error }) => {
+          if (error) {
+            console.error('Error saving to Supabase:', error);
+            setError('Failed to save entry to cloud');
+          } else {
+            setError(null);
+          }
+        })
+        .catch(err => {
+          console.error('Error saving to Supabase:', err);
+          setError('Failed to save entry to cloud');
+        });
+    }
   };
 
   // When clicking a date, set as selected and load its entry
@@ -287,6 +404,23 @@ export default function JournalPage() {
     setText('');
     setShowCompletedEntry(false);
     setShowDialog(false);
+    
+    // Delete from Supabase if user is logged in
+    if (user?.id) {
+      deleteEntry(user.id, todayKey)
+        .then(({ error }) => {
+          if (error) {
+            console.error('Error deleting from Supabase:', error);
+            setError('Failed to delete entry from cloud');
+          } else {
+            setError(null);
+          }
+        })
+        .catch(err => {
+          console.error('Error deleting from Supabase:', err);
+          setError('Failed to delete entry from cloud');
+        });
+    }
   };
 
   const [aiPrompt, setAiPrompt] = useState('');
@@ -400,6 +534,18 @@ export default function JournalPage() {
 
       {/* Main Content */}
       <div className="journal-main">
+        {loading && (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '20px',
+            color: '#7A54FF',
+            fontSize: '16px'
+          }}>
+            Loading journal entries...
+          </div>
+        )}
         <div style={{ 
           display: 'flex', 
           alignItems: 'center', 
@@ -408,6 +554,23 @@ export default function JournalPage() {
           position: 'relative'
         }}>
         <div className="date-heading">{formatDateHeading(selectedDate)}</div>
+        {error && (
+          <div style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            background: '#ffebee',
+            color: '#c62828',
+            padding: '8px 12px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            marginTop: '8px',
+            border: '1px solid #ffcdd2'
+          }}>
+            {error}
+          </div>
+        )}
           {showCompletedEntry && text && (
             <div style={{ position: 'relative' }}>
               <img 
