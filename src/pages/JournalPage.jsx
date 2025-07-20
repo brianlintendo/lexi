@@ -476,7 +476,7 @@ export default function JournalPage() {
                 <div className="weekday-date">
                   {hasEntry ? (
                     <span style={{
-                      color: isActive ? '#fff' : '#7A54FF',
+                      color: '#7A54FF',
                       fontSize: '16px',
                       fontWeight: 'bold'
                     }}>
