@@ -76,14 +76,15 @@ export default function ChatActionsRow({ onSpeak, onSend, onImage, sendDisabled 
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 4,
-            cursor: 'pointer',
-            padding: 0
+            cursor: 'not-allowed',
+            padding: 0,
+            opacity: 0.5
           }}
-          onClick={onImage}
+          disabled={true}
         >
-          <img src={imageIcon} alt="Image" style={{ width: 28, height: 28, color: '#212121' }} />
+          <img src={imageIcon} alt="Image" style={{ width: 28, height: 28, filter: 'brightness(0) saturate(100%) invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0.8) contrast(0.8)' }} />
         </button>
-        <span style={{ fontSize: 13, color: '#A0A0A0', marginTop: 2 }}>Image</span>
+        <span style={{ fontSize: 13, color: '#CBCBCB', marginTop: 2 }}>Image</span>
       </div>
     </div>
   );
