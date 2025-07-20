@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/global.css';
 import micIcon from '../assets/icons/mic.svg';
 import sendIcon from '../assets/icons/send.svg';
@@ -188,6 +188,28 @@ export default function JournalPage() {
       } catch (error) {
         console.error('Error processing chat messages:', error);
       }
+    } else {
+      // No chat messages, save current manual text entry
+      if (user?.id && text.trim()) {
+        const entryDate = selectedKey;
+        insertEntry(user.id, text, null, entryDate)
+          .then(({ error }) => {
+            if (error) {
+              console.error('Error saving manual entry to Supabase:', error);
+              setError('Failed to save entry to cloud');
+            } else {
+              setError(null);
+              setShowCompletedEntry(true);
+            }
+          })
+          .catch(err => {
+            console.error('Error saving manual entry to Supabase:', err);
+            setError('Failed to save entry to cloud');
+          });
+      } else {
+        // No user logged in or no text, just show completed entry
+        setShowCompletedEntry(true);
+      }
     }
     
     localStorage.removeItem('lexi-chat-messages');
@@ -294,9 +316,6 @@ export default function JournalPage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(journalEntries));
   }, [journalEntries]);
 
-  // Debounced save function
-  const debouncedSave = useRef(null);
-
   // Save entry for selected date
   const handleTextChange = (e) => {
     const newText = e.target.value;
@@ -308,31 +327,6 @@ export default function JournalPage() {
     const textarea = e.target;
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
-    
-    // Clear previous timeout
-    if (debouncedSave.current) {
-      clearTimeout(debouncedSave.current);
-    }
-    
-    // Debounced save to Supabase (only save after user stops typing for 1 second)
-    if (user?.id && newText.trim()) {
-      debouncedSave.current = setTimeout(() => {
-        const entryDate = selectedKey;
-        insertEntry(user.id, newText, null, entryDate) // Use insert for now until constraint is set up
-          .then(({ error }) => {
-            if (error) {
-              console.error('Error saving to Supabase:', error);
-              setError('Failed to save entry to cloud');
-            } else {
-              setError(null);
-            }
-          })
-          .catch(err => {
-            console.error('Error saving to Supabase:', err);
-            setError('Failed to save entry to cloud');
-          });
-      }, 1000); // Wait 1 second after user stops typing
-    }
   };
 
   // When clicking a date, set as selected and load its entry
