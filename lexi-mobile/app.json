@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "lexi-mobile-ts",
-    "slug": "lexi-mobile-ts",
+    "name": "lexi-mobile",
+    "slug": "lexi-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -24,19 +24,6 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "assetBundlePatterns": [
-      "**/*",
-      "assets/fonts/*"
-    ],
-    "fonts": {
-      "AlbertSans-Regular": "./assets/fonts/AlbertSans-Regular.ttf",
-      "AlbertSans-Bold": "./assets/fonts/AlbertSans-Bold.ttf"
-    },
-    "extra": {
-      "OPENAI_API_KEY": "process.env.OPENAI_API_KEY",
-      "SUPABASE_URL": "process.env.SUPABASE_URL",
-      "SUPABASE_ANON_KEY": "process.env.SUPABASE_ANON_KEY"
     }
   }
 }

@@ -1,9 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
+import Constants from 'expo-constants';
 
-const SUPABASE_URL = 'https://pjdpfogtmtdnejjxnboe.supabase.co/';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZHBmb2d0bXRkbmVqanhuYm9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzMjk4NzEsImV4cCI6MjA2NzkwNTg3MX0.Fqp8eEdOtcv7kLDykE9YsoS5mEijrR28LsINSSaYdmM';
+function getSupabaseConfig() {
+  const config = Constants.expoConfig;
+  if (!config || !config.extra || !config.extra.SUPABASE_URL || !config.extra.SUPABASE_ANON_KEY) {
+    throw new Error('SUPABASE_URL or SUPABASE_ANON_KEY is not set in app config');
+  }
+  return {
+    url: config.extra.SUPABASE_URL,
+    anonKey: config.extra.SUPABASE_ANON_KEY,
+  };
+}
+const { url: supabaseUrl, anonKey: supabaseAnonKey } = getSupabaseConfig();
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Test function to verify Supabase connection
 export async function testSupabaseConnection() {

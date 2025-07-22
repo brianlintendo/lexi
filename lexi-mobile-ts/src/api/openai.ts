@@ -1,7 +1,14 @@
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 
-const OPENAI_API_KEY = Constants.expoConfig?.extra?.EXPO_PUBLIC_OPENAI_API_KEY as string;
+function getOpenAIApiKey() {
+  const config = Constants.expoConfig;
+  if (!config || !config.extra || !config.extra.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is not set in app config');
+  }
+  return config.extra.OPENAI_API_KEY;
+}
+const OPENAI_API_KEY = getOpenAIApiKey();
 
 export async function getChatCompletion(userText: string, systemMessage: string): Promise<string> {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
