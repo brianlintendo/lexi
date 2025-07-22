@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "lexi-mobile-ts",
+    "slug": "lexi-mobile-ts",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "assetBundlePatterns": [
+      "**/*",
+      "assets/fonts/*"
+    ],
+    "fonts": {
+      "AlbertSans-Regular": "./assets/fonts/AlbertSans-Regular.ttf",
+      "AlbertSans-Bold": "./assets/fonts/AlbertSans-Bold.ttf"
+    },
+    "extra": {
+      "EXPO_PUBLIC_OPENAI_API_KEY": "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"
+    }
+  }
+}
