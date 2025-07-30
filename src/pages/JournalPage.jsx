@@ -615,6 +615,15 @@ export default function JournalPage() {
   const hasMinimumWords = wordCount >= 10;
 
   const handleEdit = () => {
+    // Get the current entry text and ensure it's loaded for editing
+    const selectedKey = getDateKey(selectedDate);
+    const entry = journalEntries[selectedKey];
+    
+    if (entry) {
+      const entryText = typeof entry === 'object' ? entry.text : entry;
+      setText(entryText);
+    }
+    
     setShowCompletedEntry(false);
     setShowDialog(false);
   };
