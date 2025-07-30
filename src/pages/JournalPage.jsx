@@ -204,11 +204,14 @@ export default function JournalPage() {
         const messages = JSON.parse(stored);
         
         // Extract all corrected entries from AI messages
+        console.log('Processing messages:', messages);
         const correctedEntries = messages
           .filter(msg => msg.sender === 'ai')
           .map(msg => {
+            console.log('Processing AI message:', msg.text);
             // Parse the AI message to extract the corrected entry
             const correctedMatch = msg.text.match(/\*\*Corrected Entry:\*\*[\s\n]*([\s\S]*?)(?=\*\*Key Corrections:|$)/i);
+            console.log('Corrected match result:', correctedMatch);
             if (correctedMatch) {
               // Properly decode HTML entities
               const decodedText = correctedMatch[1].trim()
@@ -217,14 +220,18 @@ export default function JournalPage() {
                 .replace(/&amp;/g, '&')
                 .replace(/&quot;/g, '"')
                 .replace(/&#39;/g, "'");
+              console.log('Decoded text:', decodedText);
               return decodedText;
             }
             return null;
           })
           .filter(entry => entry !== null); // Remove null entries
         
+        console.log('Corrected entries found:', correctedEntries);
+        
         // Join all corrected entries with newlines
         const journalEntry = correctedEntries.join('\n\n');
+        console.log('Final journal entry:', journalEntry);
         
         // Save as journal entry for the selected date
         console.log('Saving entry for date:', selectedKey, 'Entry:', journalEntry);
@@ -357,6 +364,7 @@ export default function JournalPage() {
             }
           } else {
             // Convert Supabase data to local format
+            console.log('Supabase data received:', data);
             const entries = {};
             data?.forEach(entry => {
               const dateKey = entry.entry_date || getDateKey(new Date(entry.created_at));
@@ -365,7 +373,9 @@ export default function JournalPage() {
                 ai_reply: entry.ai_reply,
                 submitted: entry.submitted || !!entry.ai_reply // Use submitted field or fallback to ai_reply check
               };
+              console.log('Processing Supabase entry:', { dateKey, entry: entries[dateKey] });
             });
+            console.log('Final entries object:', entries);
             setJournalEntries(entries);
             // If current selected date has an entry, load it
             if (entries[selectedKey]) {
