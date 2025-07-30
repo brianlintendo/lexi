@@ -608,10 +608,25 @@ export default function JournalPage() {
   // Saved Words Feature
   const [showCompletedEntry, setShowCompletedEntry] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  // Calculate word count for validation
+  const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+  const hasMinimumWords = wordCount >= 10;
 
   const handleEdit = () => {
     setShowCompletedEntry(false);
     setShowDialog(false);
+  };
+
+  const handleSend = () => {
+    if (hasMinimumWords) {
+      navigate('/chat', { state: { journalEntry: text } });
+    } else {
+      setShowTooltip(true);
+      // Hide tooltip after 3 seconds
+      setTimeout(() => setShowTooltip(false), 3000);
+    }
   };
 
   const handleDelete = () => {
@@ -984,11 +999,43 @@ export default function JournalPage() {
       {/* Bottom Actions: only show if no chat in progress */}
       {!chatPreview && (
         <div style={{ marginBottom: 120 }}>
+          {/* Tooltip for insufficient word count */}
+          {showTooltip && (
+            <div style={{
+              position: 'fixed',
+              bottom: '200px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: '#333',
+              color: '#fff',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              zIndex: 1000,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              maxWidth: '280px',
+              textAlign: 'center'
+            }}>
+              Type more than 10 words for your first entry
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 0,
+                height: 0,
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderTop: '6px solid #333'
+              }}></div>
+            </div>
+          )}
           <ChatActionsRow
             onSpeak={() => navigate('/voice-journal')}
-            onSend={() => navigate('/chat', { state: { journalEntry: text } })}
+            onSend={handleSend}
             onImage={() => {}}
-            sendDisabled={false}
+            sendDisabled={!hasMinimumWords}
           />
         </div>
       )}
