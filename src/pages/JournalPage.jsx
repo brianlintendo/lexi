@@ -983,13 +983,38 @@ export default function JournalPage() {
                     ? 'Lexi is thinking of a prompt...'
                     : aiPrompt || PROMPT_BUBBLES[lastLanguage] || PROMPT_BUBBLES['en']}
                 </div>
-                <textarea
-                  className="journal-textarea"
-                  placeholder={PLACEHOLDERS[language] || PLACEHOLDERS['en']}
-                  value={text}
-                  onChange={handleTextChange}
-                  style={{ height: 'auto', minHeight: '40px' }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <textarea
+                    className="journal-textarea"
+                    placeholder={PLACEHOLDERS[language] || PLACEHOLDERS['en']}
+                    value={text}
+                    onChange={handleTextChange}
+                    style={{ height: 'auto', minHeight: '40px' }}
+                  />
+                  {/* Tooltip for insufficient word count */}
+                  {showTooltip && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      background: '#fff',
+                      color: '#333',
+                      padding: '16px 20px',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      zIndex: 1000,
+                      border: '1px solid #ff4444',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                      maxWidth: '280px',
+                      textAlign: 'center',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      Type more than 10 words for your first entry
+                    </div>
+                  )}
+                </div>
               </>
             );
           }
@@ -999,38 +1024,6 @@ export default function JournalPage() {
       {/* Bottom Actions: only show if no chat in progress */}
       {!chatPreview && (
         <div style={{ marginBottom: 120 }}>
-          {/* Tooltip for insufficient word count */}
-          {showTooltip && (
-            <div style={{
-              position: 'fixed',
-              bottom: '200px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              background: '#333',
-              color: '#fff',
-              padding: '12px 16px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '500',
-              zIndex: 1000,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              maxWidth: '280px',
-              textAlign: 'center'
-            }}>
-              Type more than 10 words for your first entry
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: 0,
-                height: 0,
-                borderLeft: '6px solid transparent',
-                borderRight: '6px solid transparent',
-                borderTop: '6px solid #333'
-              }}></div>
-            </div>
-          )}
           <ChatActionsRow
             onSpeak={() => navigate('/voice-journal')}
             onSend={handleSend}
