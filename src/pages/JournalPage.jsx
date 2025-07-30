@@ -211,13 +211,17 @@ export default function JournalPage() {
         
         // Save as journal entry for the selected date
         console.log('Saving entry for date:', selectedKey, 'Entry:', journalEntry);
-        setJournalEntries(prev => ({ 
-          ...prev, 
-          [selectedKey]: {
-            text: journalEntry,
-            submitted: true
-          }
-        }));
+        setJournalEntries(prev => {
+          const newEntries = { 
+            ...prev, 
+            [selectedKey]: {
+              text: journalEntry,
+              submitted: true
+            }
+          };
+          console.log('Updated journalEntries:', newEntries);
+          return newEntries;
+        });
         setText(journalEntry);
         // Mark as submitted in localStorage
         localStorage.setItem(`submitted-${selectedKey}`, 'true');
@@ -416,9 +420,13 @@ export default function JournalPage() {
   // Separate useEffect to handle text loading when selectedKey changes (date selection)
   useEffect(() => {
     console.log('Text loading effect triggered. selectedKey:', selectedKey, 'selectedDate:', selectedDate);
+    console.log('Available journalEntries keys:', Object.keys(journalEntries));
+    console.log('Looking for entry with key:', selectedKey);
     const entry = journalEntries[selectedKey];
+    console.log('Found entry:', entry);
     if (entry) {
       const entryText = typeof entry === 'object' ? entry.text : entry;
+      console.log('Setting text to:', entryText);
       setText(entryText);
       
       // Check if entry has been submitted
@@ -428,6 +436,7 @@ export default function JournalPage() {
       );
       setShowCompletedEntry(hasSubmittedEntry);
     } else {
+      console.log('No entry found, setting empty text');
       setText('');
       setShowCompletedEntry(false);
     }
