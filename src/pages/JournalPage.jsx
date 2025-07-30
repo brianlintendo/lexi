@@ -143,7 +143,24 @@ function getDynamicPromptWithCEFR(selectedDate, journalEntries, language, profic
 
 export default function JournalPage() {
   const [today] = useState(() => new Date());
-  const [selectedDate, setSelectedDate] = useState(today);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Try to restore the last selected date from localStorage
+    const storedDate = localStorage.getItem('lexi-selected-date');
+    if (storedDate) {
+      try {
+        const parsedDate = new Date(storedDate);
+        // Only use stored date if it's valid and not too far in the past/future
+        const now = new Date();
+        const diffDays = Math.abs((parsedDate - now) / (1000 * 60 * 60 * 24));
+        if (diffDays <= 365) { // Within a year
+          return parsedDate;
+        }
+      } catch (error) {
+        console.error('Error parsing stored date:', error);
+      }
+    }
+    return today;
+  });
   const [journalEntries, setJournalEntries] = useState({}); // { 'YYYY-MM-DD': 'entry text' }
   const [search, setSearch] = useState('');
   const [text, setText] = useState('');
@@ -297,6 +314,8 @@ export default function JournalPage() {
     
     localStorage.removeItem('lexi-chat-messages');
     setChatPreview(null);
+    // Save the current selected date to localStorage so it's remembered
+    localStorage.setItem('lexi-selected-date', selectedDate.toISOString());
     console.log('handleEnd completed. Current selectedDate:', selectedDate, 'selectedKey:', selectedKey);
   };
 
@@ -498,6 +517,8 @@ export default function JournalPage() {
   // When clicking a date, set as selected and load its entry
   const handleDateClick = (date) => {
     setSelectedDate(date);
+    // Save the selected date to localStorage
+    localStorage.setItem('lexi-selected-date', date.toISOString());
     const key = getDateKey(date);
     console.log('Date clicked:', date, 'Key:', key, 'Available entries:', Object.keys(journalEntries));
     const entry = journalEntries[key];
