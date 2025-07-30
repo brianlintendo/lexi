@@ -156,7 +156,17 @@ export default function JournalPage() {
           .map(msg => {
             // Parse the AI message to extract the corrected entry
             const correctedMatch = msg.text.match(/\*\*Corrected Entry:\*\*[\s\n]*([\s\S]*?)(?=\*\*Key Corrections:|$)/i);
-            return correctedMatch ? correctedMatch[1].trim() : null;
+            if (correctedMatch) {
+              // Properly decode HTML entities
+              const decodedText = correctedMatch[1].trim()
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&amp;/g, '&')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'");
+              return decodedText;
+            }
+            return null;
           })
           .filter(entry => entry !== null); // Remove null entries
         
@@ -717,7 +727,7 @@ export default function JournalPage() {
                   margin: index > 0 ? '16px 0 0 0' : '0 0 16px 0',
                   padding: 0
                 }}
-                dangerouslySetInnerHTML={{ __html: paragraph.replace(/&lt;/g, '<').replace(/&gt;/g, '>') }}
+                dangerouslySetInnerHTML={{ __html: paragraph }}
                 />
               ))}
           </div>
