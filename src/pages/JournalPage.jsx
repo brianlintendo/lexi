@@ -17,7 +17,7 @@ import bookSavedIcon from '../assets/icons/book-saved.svg';
 import tickIcon from '../assets/icons/tick.svg';
 import { useUser } from '../hooks/useAuth';
 import BottomNav from '../components/BottomNav';
-import { getChatCompletion } from '../openai';
+import { getChatCompletion, debugEnvironment } from '../openai';
 import { insertEntry, fetchEntries, upsertEntry, deleteEntry } from '../api/journal';
 
 // Lucide placeholders for missing icons
@@ -317,6 +317,11 @@ export default function JournalPage() {
       }
     }
   }, [user?.id]); // Removed selectedKey dependency to prevent interference with typing
+
+  // Debug environment variables on component mount
+  useEffect(() => {
+    debugEnvironment();
+  }, []);
 
   // Separate useEffect to handle text loading when selectedKey changes (date selection)
   useEffect(() => {

@@ -146,6 +146,33 @@ export function debugEnvironment() {
   console.log('VITE_SUPABASE_URL exists:', !!import.meta.env.VITE_SUPABASE_URL);
   console.log('All env vars:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
   console.log('=====================================');
+  
+  // Test API key with a simple call
+  if (import.meta.env.VITE_OPENAI_API_KEY) {
+    console.log('Testing API key with a simple call...');
+    testApiKey();
+  }
+}
+
+// Test function to verify API key works
+async function testApiKey() {
+  try {
+    const response = await fetch('https://api.openai.com/v1/models', {
+      headers: {
+        'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+      },
+    });
+    
+    if (response.ok) {
+      console.log('✅ API key is working - models endpoint accessible');
+    } else {
+      console.log('❌ API key test failed - status:', response.status);
+      const errorText = await response.text();
+      console.log('Error details:', errorText);
+    }
+  } catch (error) {
+    console.log('❌ API key test failed - network error:', error.message);
+  }
 }
 
 export async function openaiTTS(text, voice = 'shimmer', model = 'tts-1', format = 'mp3') {

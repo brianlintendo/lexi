@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import '../styles/global.css';
-import { getChatCompletion, transcribeWithWhisper, openaiTTS } from '../openai';
+import { getChatCompletion, transcribeWithWhisper, openaiTTS, debugEnvironment } from '../openai';
 import ChatBubble from '../components/ChatBubble';
 import ChatActionsRow from '../components/ChatActionsRow';
 import ChatHeader from '../components/ChatHeader';
@@ -100,6 +100,11 @@ export default function ChatPage() {
     if (inputRef.current) {
       inputRef.current.focus();
     }
+  }, []);
+
+  // Debug environment variables on component mount
+  useEffect(() => {
+    debugEnvironment();
   }, []);
 
   useEffect(() => {
