@@ -237,8 +237,19 @@ export default function JournalPage() {
         if (!journalEntry.trim()) {
           // Extract user's original text from messages
           const userMessages = messages.filter(msg => msg.sender === 'user').map(msg => msg.text);
+          console.log('User messages found:', userMessages);
           journalEntry = userMessages.join('\n\n');
           console.log('No corrected entries found, using user text:', journalEntry);
+          
+          // If user messages are also empty or contain "not needed", try to get the original input
+          if (!journalEntry.trim() || journalEntry.includes('not needed')) {
+            console.log('User messages are empty or contain "not needed", checking for original input');
+            // Try to get the original text from the current text state
+            if (text && text.trim() && !text.includes('not needed')) {
+              journalEntry = text;
+              console.log('Using current text state as fallback:', journalEntry);
+            }
+          }
         }
         
         // Save as journal entry for the selected date
@@ -627,9 +638,14 @@ export default function JournalPage() {
     const selectedKey = getDateKey(selectedDate);
     const entry = journalEntries[selectedKey];
     
+    console.log('handleEdit - selectedKey:', selectedKey, 'entry:', entry);
+    
     if (entry) {
       const entryText = typeof entry === 'object' ? entry.text : entry;
+      console.log('handleEdit - setting text to:', entryText);
       setText(entryText);
+    } else {
+      console.log('handleEdit - no entry found for key:', selectedKey);
     }
     
     setShowCompletedEntry(false);
