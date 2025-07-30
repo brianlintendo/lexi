@@ -209,23 +209,23 @@ export default function JournalPage() {
         // Join all corrected entries with newlines
         const journalEntry = correctedEntries.join('\n\n');
         
-        // Save as journal entry for today
-        const todayKey = getDateKey(new Date());
+        // Save as journal entry for the selected date
+        console.log('Saving entry for date:', selectedKey, 'Entry:', journalEntry);
         setJournalEntries(prev => ({ 
           ...prev, 
-          [todayKey]: {
+          [selectedKey]: {
             text: journalEntry,
             submitted: true
           }
         }));
         setText(journalEntry);
         // Mark as submitted in localStorage
-        localStorage.setItem(`submitted-${todayKey}`, 'true');
+        localStorage.setItem(`submitted-${selectedKey}`, 'true');
         setShowCompletedEntry(true);
         
         // Update Supabase to mark as submitted
         if (user?.id) {
-          updateEntrySubmitted(user.id, todayKey, true)
+          updateEntrySubmitted(user.id, selectedKey, true)
             .then(({ error }) => {
               if (error) {
                 console.error('Error updating submission status in Supabase:', error);
@@ -238,8 +238,8 @@ export default function JournalPage() {
         
         // Save to Supabase if user is logged in
         if (user?.id && journalEntry.trim()) {
-          const todayKey = getDateKey(new Date());
-          insertEntry(user.id, journalEntry, null, todayKey, true) // Mark as submitted
+          console.log('Saving to Supabase for date:', selectedKey);
+          insertEntry(user.id, journalEntry, null, selectedKey, true) // Mark as submitted
             .then(({ error }) => {
               if (error) {
                 console.error('Error saving chat entry to Supabase:', error);
@@ -260,6 +260,7 @@ export default function JournalPage() {
         // No chat messages, save current manual text entry
         if (user?.id && text.trim()) {
           const entryDate = selectedKey;
+          console.log('Saving manual entry for date:', entryDate, 'Text:', text);
           // Mark as submitted in localStorage
           localStorage.setItem(`submitted-${entryDate}`, 'true');
           // Update local state to mark as submitted
@@ -486,6 +487,7 @@ export default function JournalPage() {
   const handleDateClick = (date) => {
     setSelectedDate(date);
     const key = getDateKey(date);
+    console.log('Date clicked:', date, 'Key:', key, 'Available entries:', Object.keys(journalEntries));
     const entry = journalEntries[key];
     
     // Check if entry has been submitted
@@ -906,16 +908,7 @@ export default function JournalPage() {
           );
           
           if (hasSubmittedEntry) {
-            return (
-              <div style={{
-                textAlign: 'center',
-                padding: '40px 20px',
-                color: '#666',
-                fontSize: '16px'
-              }}>
-                This entry has been completed. You can edit it using the menu above.
-              </div>
-            );
+            return null; // Don't show prompt for completed entries
           } else {
             return (
               <>
