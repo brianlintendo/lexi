@@ -551,6 +551,7 @@ export default function JournalPage() {
     setText(newText);
     setJournalInput(newText); // <-- update context
     // Save as draft (not submitted yet)
+    const selectedKey = getDateKey(selectedDate);
     setJournalEntries((prev) => ({ 
       ...prev, 
       [selectedKey]: {
