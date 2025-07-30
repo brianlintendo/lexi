@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { openaiTTS, transcribeWithWhisper, getChatCompletion } from '../openai';
+import { openaiTTS, transcribeWithWhisper, getChatCompletion, debugEnvironment } from '../openai';
 import ChatHeader from '../components/ChatHeader';
 import micIcon from '../assets/icons/mic.svg';
 import micMuteIcon from '../assets/icons/microphone-mute.svg';
@@ -124,6 +124,11 @@ export default function VoiceJournal() {
       setPromptText(getInitialPrompt(language));
     }
   }, [language, hasInteracted, aiReplies.length]);
+
+  // Debug environment variables on component mount
+  useEffect(() => {
+    debugEnvironment();
+  }, []);
 
   // Load preserved conversation state from localStorage on mount
   useEffect(() => {

@@ -99,6 +99,11 @@ export async function getChatCompletion(userText, systemMessage = `
 export async function transcribeWithWhisper(audioBlob, language = 'fr') {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
   
+  console.log('transcribeWithWhisper - Environment check:');
+  console.log('transcribeWithWhisper - VITE_OPENAI_API_KEY exists:', !!import.meta.env.VITE_OPENAI_API_KEY);
+  console.log('transcribeWithWhisper - API key length:', apiKey ? apiKey.length : 0);
+  console.log('transcribeWithWhisper - API key starts with sk-:', apiKey ? apiKey.startsWith('sk-') : false);
+  
   if (!apiKey) {
     throw new Error('OpenAI API key is not configured');
   }
@@ -130,6 +135,17 @@ export async function transcribeWithWhisper(audioBlob, language = 'fr') {
   const data = await response.json();
   console.log('transcribeWithWhisper - Success:', data);
   return data.text;
+}
+
+// Debug function to check environment variables
+export function debugEnvironment() {
+  console.log('=== Environment Variables Debug ===');
+  console.log('VITE_OPENAI_API_KEY exists:', !!import.meta.env.VITE_OPENAI_API_KEY);
+  console.log('VITE_OPENAI_API_KEY length:', import.meta.env.VITE_OPENAI_API_KEY ? import.meta.env.VITE_OPENAI_API_KEY.length : 0);
+  console.log('VITE_OPENAI_API_KEY starts with sk-:', import.meta.env.VITE_OPENAI_API_KEY ? import.meta.env.VITE_OPENAI_API_KEY.startsWith('sk-') : false);
+  console.log('VITE_SUPABASE_URL exists:', !!import.meta.env.VITE_SUPABASE_URL);
+  console.log('All env vars:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
+  console.log('=====================================');
 }
 
 export async function openaiTTS(text, voice = 'shimmer', model = 'tts-1', format = 'mp3') {
