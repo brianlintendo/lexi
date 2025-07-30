@@ -11,7 +11,7 @@ import ChatBubble from '../components/ChatBubble';
 import BottomSheet from '../components/BottomSheet';
 import ChatActionsRow from '../components/ChatActionsRow';
 import 'flag-icons/css/flag-icons.min.css';
-import { useJournal } from '../components/JournalContext';
+import { useJournal, useProfile } from '../components/JournalContext';
 import LanguageSheet from '../components/LanguageSheet';
 import bookSavedIcon from '../assets/icons/book-saved.svg';
 import tickIcon from '../assets/icons/tick.svg';
@@ -89,7 +89,42 @@ function getFlagCode(language) {
   return flagMap[language] || 'us';
 }
 
-function getDynamicPrompt(selectedDate, journalEntries, language) {
+function getCEFRPrompt(level, language) {
+  // Prompts for each CEFR level (can be expanded for more nuance)
+  const prompts = {
+    A1: {
+      en: "What did you do today? Write 1-2 simple sentences.",
+      es: "¿Qué hiciste hoy? Escribe 1-2 frases sencillas.",
+      fr: "Qu'as-tu fait aujourd'hui ? Écris 1-2 phrases simples.",
+      // ... add more languages as needed
+    },
+    A2: {
+      en: "Can you describe your day using simple words? What did you do?",
+      es: "¿Puedes describir tu día con palabras sencillas? ¿Qué hiciste?",
+      fr: "Peux-tu décrire ta journée avec des mots simples ? Qu'as-tu fait ?",
+    },
+    B1: {
+      en: "Tell me about something interesting that happened today. Try to use a few sentences.",
+      es: "Cuéntame algo interesante que pasó hoy. Intenta usar algunas frases.",
+      fr: "Raconte-moi quelque chose d'intéressant qui s'est passé aujourd'hui. Essaie d'utiliser quelques phrases.",
+    },
+    B2: {
+      en: "Reflect on your day. What was the most challenging or rewarding part? Write a short paragraph.",
+      es: "Reflexiona sobre tu día. ¿Qué fue lo más desafiante o gratificante? Escribe un párrafo corto.",
+      fr: "Réfléchis à ta journée. Quelle a été la partie la plus difficile ou la plus gratifiante ? Écris un court paragraphe.",
+    },
+    C1: {
+      en: "Analyze your day in detail. What did you learn or realize? Try to use advanced vocabulary and connect your thoughts.",
+      es: "Analiza tu día en detalle. ¿Qué aprendiste o descubriste? Intenta usar vocabulario avanzado y conectar tus ideas.",
+      fr: "Analyse ta journée en détail. Qu'as-tu appris ou réalisé ? Essaie d'utiliser un vocabulaire avancé et de connecter tes idées.",
+    }
+  };
+  // Default to A1 if not found
+  const levelKey = (level || '').split(' ')[0];
+  return (prompts[levelKey] && prompts[levelKey][language]) || prompts['A1']['en'];
+}
+
+function getDynamicPromptWithCEFR(selectedDate, journalEntries, language, proficiency) {
   const todayKey = getDateKey(selectedDate);
   const yesterday = new Date(selectedDate);
   yesterday.setDate(selectedDate.getDate() - 1);
@@ -97,13 +132,13 @@ function getDynamicPrompt(selectedDate, journalEntries, language) {
   const entryToday = journalEntries[todayKey];
   const entryYesterday = journalEntries[yesterdayKey];
   if (entryYesterday && !entryToday) {
-    return `Yesterday you wrote: "${entryYesterday.slice(0, 60)}..." How are you feeling today?`;
+    return `Yesterday you wrote: "${entryYesterday.slice(0, 60)}..." ${getCEFRPrompt(proficiency, language)}`;
   } else if (!entryYesterday && !entryToday) {
-    return `It's a new day! What would you like to write about today?`;
+    return getCEFRPrompt(proficiency, language);
   } else if (entryToday) {
     return `Great job writing today! Want to add more or reflect on something else?`;
   }
-  return PROMPT_BUBBLES[language] || PROMPT_BUBBLES['en'];
+  return getCEFRPrompt(proficiency, language);
 }
 
 export default function JournalPage() {
@@ -114,6 +149,7 @@ export default function JournalPage() {
   const [text, setText] = useState('');
   const navigate = useNavigate();
   const { journalInput, setJournalInput, language, setLanguage } = useJournal();
+  const { profile } = useProfile();
   const [showLangSheet, setShowLangSheet] = useState(false);
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
