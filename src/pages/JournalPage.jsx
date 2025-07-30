@@ -198,6 +198,12 @@ export default function JournalPage() {
 
   const handleResume = () => navigate('/chat');
   const handleEnd = () => {
+    console.log('=== END BUTTON CLICKED ===');
+    console.log('- isEditing:', isEditing);
+    console.log('- selectedKey:', selectedKey);
+    console.log('- text:', text);
+    console.log('- text length:', text.length);
+    
     // Get the full conversation before clearing it
     const stored = localStorage.getItem('lexi-chat-messages');
     if (stored) {
@@ -356,6 +362,10 @@ export default function JournalPage() {
     // Save the current selected date to localStorage so it's remembered
     localStorage.setItem('lexi-selected-date', selectedDate.toISOString());
     console.log('handleEnd completed. Current selectedDate:', selectedDate, 'selectedKey:', selectedKey);
+    
+    // Reset editing state
+    console.log('Resetting isEditing to false');
+    setIsEditing(false);
   };
 
   const weekDates = getWeekDates(selectedDate);
@@ -480,14 +490,22 @@ export default function JournalPage() {
 
   // Separate useEffect to handle text loading when selectedKey changes (date selection)
   useEffect(() => {
-    console.log('Text loading effect triggered. selectedKey:', selectedKey, 'selectedDate:', selectedDate);
-    console.log('Available journalEntries keys:', Object.keys(journalEntries));
-    console.log('Looking for entry with key:', selectedKey);
+    console.log('=== TEXT LOADING EFFECT TRIGGERED ===');
+    console.log('- selectedKey:', selectedKey);
+    console.log('- selectedDate:', selectedDate);
+    console.log('- isEditing:', isEditing);
+    console.log('- showCompletedEntry:', showCompletedEntry);
+    console.log('- Available journalEntries keys:', Object.keys(journalEntries));
+    console.log('- Looking for entry with key:', selectedKey);
+    
     const entry = journalEntries[selectedKey];
-    console.log('Found entry:', entry);
+    console.log('- Found entry:', entry);
+    console.log('- Entry type:', typeof entry);
+    
     if (entry) {
       const entryText = typeof entry === 'object' ? entry.text : entry;
-      console.log('Setting text to:', entryText);
+      console.log('- Setting text to:', entryText);
+      console.log('- Text length:', entryText.length);
       setText(entryText);
       
       // Check if entry has been submitted
@@ -495,22 +513,30 @@ export default function JournalPage() {
         (typeof entry === 'object' && (entry.ai_reply || entry.submitted)) ||
         (typeof entry === 'string' && localStorage.getItem(`submitted-${selectedKey}`))
       );
-      console.log('Setting showCompletedEntry to:', hasSubmittedEntry);
+      console.log('- hasSubmittedEntry:', hasSubmittedEntry);
+      console.log('- Entry submitted status:', typeof entry === 'object' ? entry.submitted : 'N/A');
       
       // Only set showCompletedEntry if we're not currently editing
       if (!isEditing) {
+        console.log('- Setting showCompletedEntry to:', hasSubmittedEntry, '(not editing)');
         setShowCompletedEntry(hasSubmittedEntry);
+      } else {
+        console.log('- NOT setting showCompletedEntry (currently editing)');
       }
     } else {
-      console.log('No entry found, setting empty text');
+      console.log('- No entry found, setting empty text');
       setText('');
-      console.log('Setting showCompletedEntry to false');
+      console.log('- Setting showCompletedEntry to false');
       
       // Only set showCompletedEntry if we're not currently editing
       if (!isEditing) {
+        console.log('- Setting showCompletedEntry to false (not editing)');
         setShowCompletedEntry(false);
+      } else {
+        console.log('- NOT setting showCompletedEntry to false (currently editing)');
       }
     }
+    console.log('=== TEXT LOADING EFFECT COMPLETED ===');
   }, [selectedKey, journalEntries, isEditing]);
 
   // Sync localStorage with Supabase when user logs in
@@ -655,30 +681,67 @@ export default function JournalPage() {
   const hasMinimumWords = wordCount >= 10;
 
   const handleEdit = () => {
+    console.log('=== EDIT BUTTON CLICKED ===');
+    console.log('Current state before edit:');
+    console.log('- selectedDate:', selectedDate);
+    console.log('- isEditing:', isEditing);
+    console.log('- showCompletedEntry:', showCompletedEntry);
+    console.log('- text:', text);
+    console.log('- text length:', text.length);
+    
     // Get the current entry text and ensure it's loaded for editing
     const selectedKey = getDateKey(selectedDate);
     const entry = journalEntries[selectedKey];
     
-    console.log('handleEdit - selectedKey:', selectedKey, 'entry:', entry);
+    console.log('=== ENTRY LOOKUP ===');
+    console.log('- selectedKey:', selectedKey);
+    console.log('- entry:', entry);
+    console.log('- entry type:', typeof entry);
+    console.log('- all journalEntries keys:', Object.keys(journalEntries));
     
     if (entry) {
       const entryText = typeof entry === 'object' ? entry.text : entry;
-      console.log('handleEdit - setting text to:', entryText);
+      console.log('=== SETTING TEXT FOR EDIT ===');
+      console.log('- entryText:', entryText);
+      console.log('- entryText length:', entryText.length);
+      console.log('- entryText type:', typeof entryText);
+      
       setText(entryText);
       setIsEditing(true); // Mark that we're in edit mode
+      
+      console.log('=== STATE UPDATES SCHEDULED ===');
+      console.log('- setText called with:', entryText);
+      console.log('- setIsEditing(true) called');
     } else {
-      console.log('handleEdit - no entry found for key:', selectedKey);
+      console.log('=== NO ENTRY FOUND ===');
+      console.log('- No entry found for key:', selectedKey);
+      console.log('- Available entries:', journalEntries);
     }
+    
+    console.log('=== RESETTING UI STATE ===');
+    console.log('- setShowCompletedEntry(false) called');
+    console.log('- setShowDialog(false) called');
     
     setShowCompletedEntry(false);
     setShowDialog(false);
+    
+    console.log('=== EDIT FUNCTION COMPLETED ===');
   };
 
   const handleSend = () => {
+    console.log('=== SEND BUTTON CLICKED ===');
+    console.log('- hasMinimumWords:', hasMinimumWords);
+    console.log('- isEditing:', isEditing);
+    console.log('- text:', text);
+    console.log('- text length:', text.length);
+    
     if (hasMinimumWords) {
+      console.log('- Word count sufficient, proceeding to chat');
+      console.log('- Resetting isEditing to false');
       setIsEditing(false); // Reset editing state
       navigate('/chat', { state: { journalEntry: text } });
     } else {
+      console.log('- Word count insufficient, showing tooltip');
       setShowTooltip(true);
       // Hide tooltip after 3 seconds
       setTimeout(() => setShowTooltip(false), 3000);
