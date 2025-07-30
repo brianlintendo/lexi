@@ -97,24 +97,38 @@ export async function getChatCompletion(userText, systemMessage = `
 }
 
 export async function transcribeWithWhisper(audioBlob, language = 'fr') {
+  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('OpenAI API key is not configured');
+  }
+  
+  console.log('transcribeWithWhisper - Language:', language);
+  console.log('transcribeWithWhisper - API key present:', !!apiKey);
+  console.log('transcribeWithWhisper - Audio blob size:', audioBlob.size);
+  
   const formData = new FormData();
-  formData.append('file', audioBlob, 'audio.webm');
+  const fileExtension = audioBlob.type.includes('mp4') ? 'mp4' : 'webm';
+  formData.append('file', audioBlob, `audio.${fileExtension}`);
   formData.append('model', 'whisper-1');
   formData.append('language', language);
 
   const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+      'Authorization': `Bearer ${apiKey}`,
     },
     body: formData,
   });
 
   if (!response.ok) {
-    throw new Error('Failed to transcribe audio');
+    const errorText = await response.text();
+    console.error('transcribeWithWhisper - API Error:', response.status, errorText);
+    throw new Error(`Transcription failed: ${response.status} - ${errorText}`);
   }
 
   const data = await response.json();
+  console.log('transcribeWithWhisper - Success:', data);
   return data.text;
 }
 

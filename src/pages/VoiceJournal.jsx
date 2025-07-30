@@ -208,8 +208,22 @@ export default function VoiceJournal() {
     setIsListening(true);
     setIndicatorText('Listening…');
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new window.MediaRecorder(stream);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true
+        } 
+      });
+      
+      // Try to use mp4 format first, fallback to webm
+      const mimeType = MediaRecorder.isTypeSupported('audio/mp4') 
+        ? 'audio/mp4' 
+        : 'audio/webm';
+      
+      console.log('VoiceJournal - Using MIME type:', mimeType);
+      mediaRecorderRef.current = new window.MediaRecorder(stream, { mimeType });
       audioChunksRef.current = [];
       mediaRecorderRef.current.ondataavailable = (e) => {
         audioChunksRef.current.push(e.data);
@@ -217,9 +231,15 @@ export default function VoiceJournal() {
       mediaRecorderRef.current.onstop = async () => {
         setIsListening(false);
         setIndicatorText('Processing…');
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const mimeType = mediaRecorderRef.current.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        console.log('VoiceJournal - Audio format:', audioBlob.type);
+        console.log('VoiceJournal - Audio size:', audioBlob.size, 'bytes');
         try {
+          console.log('VoiceJournal - Starting transcription with language:', language);
+          console.log('VoiceJournal - Audio blob size:', audioBlob.size, 'bytes');
           const transcription = await transcribeWithWhisper(audioBlob, language);
+          console.log('VoiceJournal - Transcription result:', transcription);
           setEntry(transcription);
           if (transcription.trim()) {
             setReadyToSubmit(true);
@@ -228,7 +248,9 @@ export default function VoiceJournal() {
             setIndicatorText('No speech detected. Tap to try again.');
           }
         } catch (err) {
-          setIndicatorText('Transcription failed. Tap to try again.');
+          console.error('VoiceJournal - Transcription error:', err);
+          console.error('VoiceJournal - Error details:', err.message);
+          setIndicatorText(`Transcription failed: ${err.message}. Tap to try again.`);
         }
       };
       mediaRecorderRef.current.start();
