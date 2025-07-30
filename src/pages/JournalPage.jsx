@@ -293,6 +293,7 @@ export default function JournalPage() {
     
     localStorage.removeItem('lexi-chat-messages');
     setChatPreview(null);
+    console.log('handleEnd completed. Current selectedDate:', selectedDate, 'selectedKey:', selectedKey);
   };
 
   const weekDates = getWeekDates(selectedDate);
@@ -413,6 +414,7 @@ export default function JournalPage() {
 
   // Separate useEffect to handle text loading when selectedKey changes (date selection)
   useEffect(() => {
+    console.log('Text loading effect triggered. selectedKey:', selectedKey, 'selectedDate:', selectedDate);
     const entry = journalEntries[selectedKey];
     if (entry) {
       const entryText = typeof entry === 'object' ? entry.text : entry;
