@@ -991,29 +991,6 @@ export default function JournalPage() {
                     onChange={handleTextChange}
                     style={{ height: 'auto', minHeight: '40px' }}
                   />
-                  {/* Tooltip for insufficient word count */}
-                  {showTooltip && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      background: '#fff',
-                      color: '#333',
-                      padding: '16px 20px',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      zIndex: 1000,
-                      border: '1px solid #ff4444',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                      maxWidth: '280px',
-                      textAlign: 'center',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      Type more than 10 words for your first entry
-                    </div>
-                  )}
                 </div>
               </>
             );
@@ -1023,7 +1000,42 @@ export default function JournalPage() {
 
       {/* Bottom Actions: only show if no chat in progress */}
       {!chatPreview && (
-        <div style={{ marginBottom: 120 }}>
+        <div style={{ marginBottom: 120, position: 'relative' }}>
+          {/* Tooltip for insufficient word count */}
+          {showTooltip && (
+            <div style={{
+              position: 'absolute',
+              bottom: '80px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: '#fff',
+              color: '#333',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              zIndex: 1000,
+              border: '1px solid transparent',
+              backgroundClip: 'padding-box',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              textAlign: 'center',
+              whiteSpace: 'nowrap',
+              width: 'fit-content',
+              minWidth: 'max-content'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '-1px',
+                left: '-1px',
+                right: '-1px',
+                bottom: '-1px',
+                background: 'linear-gradient(180deg, #FDB3B3 0%, #72648C 48.08%, #6F7BD8 100%)',
+                borderRadius: '8px',
+                zIndex: -1
+              }}></div>
+              Type more than 10 words for your first entry
+            </div>
+          )}
           <ChatActionsRow
             onSpeak={() => navigate('/voice-journal')}
             onSend={handleSend}
