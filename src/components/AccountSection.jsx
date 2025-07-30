@@ -2,7 +2,7 @@ import React from 'react';
 import { useUser } from '../hooks/useAuth';
 
 const AccountSection = () => {
-  const { user, signInWithGoogle, signInGuest, signOut } = useUser();
+  const { user, signInWithGoogle, signOut } = useUser();
 
   return (
     <div className="account-section">
@@ -24,10 +24,6 @@ const AccountSection = () => {
             <button onClick={signInWithGoogle} className="google-sign-in-btn">
               <span className="google-icon">G</span>
               Sign in with Google
-            </button>
-            <button onClick={signInGuest} className="guest-sign-in-btn">
-              <span className="guest-icon">👤</span>
-              Continue as Guest
             </button>
           </div>
         </div>

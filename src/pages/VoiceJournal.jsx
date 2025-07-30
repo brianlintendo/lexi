@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { openaiTTS, transcribeWithWhisper, getChatCompletion, debugEnvironment } from '../openai';
 import ChatHeader from '../components/ChatHeader';
 import ChatBubble from '../components/ChatBubble';
+import BottomNav from '../components/BottomNav';
 import micIcon from '../assets/icons/mic.svg';
 import micMuteIcon from '../assets/icons/microphone-mute.svg';
 import keyboardIcon from '../assets/icons/keyboard.svg';
@@ -111,13 +112,12 @@ export default function VoiceJournal() {
   const [aiReplies, setAiReplies] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [indicatorText, setIndicatorText] = useState('Speak now');
+  const [indicatorText, setIndicatorText] = useState('');
   const audioRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   // Track if user has interacted
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [readyToSubmit, setReadyToSubmit] = useState(false);
 
   // Update initial prompt when language changes (only if no conversation has started)
   useEffect(() => {
@@ -157,12 +157,14 @@ export default function VoiceJournal() {
           setAiReplies(replies);
           setHasInteracted(true);
           
-          // Set the current prompt and AI sections
-          if (voiceState.currentPrompt) {
+          // Set the current prompt to the last AI message (follow-up prompt)
+          const lastAIMessage = messages[messages.length - 1];
+          if (lastAIMessage && lastAIMessage.sender === 'ai') {
+            setPromptText(lastAIMessage.text);
+            setAiSections(parseAISections(lastAIMessage.text));
+          } else if (voiceState.currentPrompt) {
             setPromptText(voiceState.currentPrompt);
-          }
-          if (voiceState.aiSections) {
-            setAiSections(voiceState.aiSections);
+            setAiSections(voiceState.aiSections || parseAISections(voiceState.currentPrompt));
           }
         }
       } catch (error) {
@@ -212,19 +214,19 @@ export default function VoiceJournal() {
       audioRef.current = new window.Audio(audioUrl);
       audioRef.current.onended = () => {
         setIsSpeaking(false);
-        setIndicatorText('Speak now');
+        setIndicatorText('');
       };
       audioRef.current.play();
     } catch (e) {
       setIsSpeaking(false);
-      setIndicatorText('Speak now');
+      setIndicatorText('');
     }
   };
 
   // Start listening for user voice
   const startListening = async () => {
     setIsListening(true);
-    setIndicatorText('Recording... Click "Submit Recording" when done');
+    setIndicatorText('Speak now');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -251,7 +253,7 @@ export default function VoiceJournal() {
       };
       mediaRecorderRef.current.onstop = async () => {
         setIsListening(false);
-        setIndicatorText('Processing…');
+        setIndicatorText('Lexi is processing…');
         // Use the detected MIME type for the blob
         const mimeType = mediaRecorderRef.current.mimeType || 'audio/webm';
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
@@ -265,8 +267,26 @@ export default function VoiceJournal() {
           console.log(`Transcription completed in ${(endTime - startTime).toFixed(2)}ms`);
           setEntry(transcription);
           if (transcription.trim()) {
-            setReadyToSubmit(true);
-            setIndicatorText('Tap to submit');
+            // Automatically submit the transcription to AI
+            setIndicatorText('Lexi is speaking…');
+            let systemPrompt;
+            if (profile?.proficiency) {
+              systemPrompt = getProficiencyPrompt(profile.proficiency, language);
+            } else {
+              // Use default system prompt with language specification
+              const languageNames = {
+                'en': 'English', 'es': 'Spanish', 'fr': 'French', 'zh': 'Chinese', 'pt': 'Portuguese',
+                'it': 'Italian', 'de': 'German', 'ja': 'Japanese', 'ko': 'Korean', 'ru': 'Russian',
+                'ar': 'Arabic', 'hi': 'Hindi', 'nl': 'Dutch', 'sv': 'Swedish', 'no': 'Norwegian',
+                'da': 'Danish', 'fi': 'Finnish', 'pl': 'Polish', 'tr': 'Turkish', 'he': 'Hebrew',
+                'th': 'Thai', 'vi': 'Vietnamese', 'id': 'Indonesian', 'ms': 'Malay'
+              };
+              const targetLanguageName = languageNames[language] || language;
+              systemPrompt = `You are Lexi, a friendly language tutor. The user's target language is ${targetLanguageName} (${language}). You MUST ALWAYS respond in ${targetLanguageName}. When the user submits text, respond in this format: **Corrected Entry:** (if needed), **Key Corrections:** (if needed), **Phrase to Remember:** (if needed), **Vocabulary Enhancer:** (always), **Follow-up:** (in ${targetLanguageName}), **Follow-up Translation:** (English). CRITICAL: Respond in ${targetLanguageName} only.`;
+            }
+            const aiReply = await getChatCompletion(transcription, systemPrompt);
+            handleAIReply(transcription, aiReply);
+            setEntry('');
           } else {
             setIndicatorText('No speech detected. Tap to try again.');
           }
@@ -303,33 +323,7 @@ export default function VoiceJournal() {
       playPrompt();
       return;
     }
-    if (readyToSubmit) {
-      // Submit the transcription to AI
-      setReadyToSubmit(false);
-      setIndicatorText('Lexi is speaking…');
-      (async () => {
-        let systemPrompt;
-        if (profile?.proficiency) {
-          systemPrompt = getProficiencyPrompt(profile.proficiency, language);
-        } else {
-          // Use default system prompt with language specification
-          const languageNames = {
-            'en': 'English', 'es': 'Spanish', 'fr': 'French', 'zh': 'Chinese', 'pt': 'Portuguese',
-            'it': 'Italian', 'de': 'German', 'ja': 'Japanese', 'ko': 'Korean', 'ru': 'Russian',
-            'ar': 'Arabic', 'hi': 'Hindi', 'nl': 'Dutch', 'sv': 'Swedish', 'no': 'Norwegian',
-            'da': 'Danish', 'fi': 'Finnish', 'pl': 'Polish', 'tr': 'Turkish', 'he': 'Hebrew',
-            'th': 'Thai', 'vi': 'Vietnamese', 'id': 'Indonesian', 'ms': 'Malay'
-          };
-          const targetLanguageName = languageNames[language] || language;
-          systemPrompt = `You are Lexi, a friendly language tutor. The user's target language is ${targetLanguageName} (${language}). You MUST ALWAYS respond in ${targetLanguageName}. When the user submits text, respond in this format: **Corrected Entry:** (if needed), **Key Corrections:** (if needed), **Phrase to Remember:** (if needed), **Vocabulary Enhancer:** (always), **Follow-up:** (in ${targetLanguageName}), **Follow-up Translation:** (English). CRITICAL: Respond in ${targetLanguageName} only.`;
-        }
-        const aiReply = await getChatCompletion(entry, systemPrompt);
-        handleAIReply(entry, aiReply);
-        setEntry('');
-      })();
-      return;
-    }
-    if (indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted) {
+    if (!isSpeaking && !isListening && !isMuted) {
       startListening();
     }
   };
@@ -420,9 +414,14 @@ export default function VoiceJournal() {
 
   // Render logic
   return (
-    <div style={{ maxWidth: 375, margin: '0 auto', minHeight: '100vh', background: '#fff', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <ChatHeader wordCount={wordCount} wordLimit={wordLimit} onBack={onBack} />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', padding: '24px 16px 0 16px', position: 'relative' }}>
+    <div style={{ width: '100%', margin: '0 auto', minHeight: '100vh', background: '#fff', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <ChatHeader 
+        onBack={onBack} 
+        onSettings={onSettings}
+        onThemesClick={() => navigate('/prompts')}
+        showBookButton={true}
+      />
+      <div style={{ flex: 1, padding: '24px 18px 0 18px', maxWidth: 600, margin: '0 auto', width: '100%', paddingBottom: '200px' }}>
         {/* AI Prompt (Follow-up) at the top */}
         <div 
           onClick={handlePromptClick}
@@ -439,9 +438,9 @@ export default function VoiceJournal() {
             fontSize: 20,
             color: '#7c4dff',
             textAlign: 'center',
-            cursor: (!hasInteracted || readyToSubmit || (indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted)) ? 'pointer' : 'default',
+            cursor: (!hasInteracted || (!isSpeaking && !isListening && !isMuted)) ? 'pointer' : 'default',
             transition: 'box-shadow 0.2s',
-            opacity: (!hasInteracted || readyToSubmit || (indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted)) ? 1 : 0.9,
+            opacity: (!hasInteracted || (!isSpeaking && !isListening && !isMuted)) ? 1 : 0.9,
             position: 'relative',
             width: '100%',
           }}
@@ -469,42 +468,7 @@ export default function VoiceJournal() {
               Tap to start
             </div>
           )}
-          {(hasInteracted && readyToSubmit) && (
-            <div style={{
-              position: 'absolute',
-              bottom: -8,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              background: '#7A54FF',
-              color: '#fff',
-              padding: '4px 12px',
-              borderRadius: 12,
-              fontSize: 12,
-              fontWeight: 500,
-              whiteSpace: 'nowrap',
-              boxShadow: '0 2px 8px rgba(122,84,255,0.2)',
-            }}>
-              Tap to submit
-            </div>
-          )}
-          {(hasInteracted && !readyToSubmit && indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted) && (
-            <div style={{
-              position: 'absolute',
-              bottom: -8,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              background: '#7A54FF',
-              color: '#fff',
-              padding: '4px 12px',
-              borderRadius: 12,
-              fontSize: 12,
-              fontWeight: 500,
-              whiteSpace: 'nowrap',
-              boxShadow: '0 2px 8px rgba(122,84,255,0.2)',
-            }}>
-              Tap to speak
-            </div>
-          )}
+
         </div>
         {/* Chat messages using ChatBubble component */}
         <div style={{ width: '100%', marginBottom: 16 }}>
@@ -524,31 +488,12 @@ export default function VoiceJournal() {
         </div>
         {/* Indicator and dots */}
         <div style={{ marginTop: 32, textAlign: 'center', width: '100%' }}>
-          <div 
-            style={{ 
-              color: '#888', 
-              fontSize: 16, 
-              marginBottom: 16, 
-              fontWeight: 500,
-              cursor: indicatorText === 'Speak now' && !isSpeaking && !isListening ? 'pointer' : 'default',
-              opacity: indicatorText === 'Speak now' && !isSpeaking && !isListening ? 1 : 0.7,
-              transition: 'opacity 0.2s'
-            }}
-            onClick={() => {
-              if (indicatorText === 'Speak now' && !isSpeaking && !isListening && !isMuted) {
-                startListening();
-              }
-            }}
-          >
-            {indicatorText}
-          </div>
-          
-          {/* Submit button - appears when recording */}
-          {isListening && (
+          {/* Tap to speak button - appears when ready to record */}
+          {(hasInteracted && !isSpeaking && !isListening && !isMuted && indicatorText !== 'Lexi is processing…' && indicatorText !== 'Lexi is speaking…') && (
             <button
               onClick={() => {
-                if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-                  mediaRecorderRef.current.stop();
+                if (!isSpeaking && !isListening && !isMuted) {
+                  startListening();
                 }
               }}
               style={{
@@ -562,7 +507,58 @@ export default function VoiceJournal() {
                 cursor: 'pointer',
                 boxShadow: '0 4px 12px rgba(122,84,255,0.3)',
                 transition: 'all 0.2s ease',
-                marginTop: 16
+                marginBottom: 16
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = '#6A44EF';
+                e.target.style.transform = 'translateY(-1px)';
+                e.target.style.boxShadow = '0 6px 16px rgba(122,84,255,0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = '#7A54FF';
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 12px rgba(122,84,255,0.3)';
+              }}
+            >
+              Tap to Speak
+            </button>
+          )}
+          
+          <div 
+            style={{ 
+              color: '#888', 
+              fontSize: 16, 
+              marginBottom: 16, 
+              fontWeight: 500,
+              opacity: indicatorText ? 1 : 0.7,
+              transition: 'opacity 0.2s'
+            }}
+          >
+            {indicatorText}
+          </div>
+          
+          {/* Submit button - appears when recording */}
+          {isListening && (
+            <button
+              onClick={() => {
+                if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+                  mediaRecorderRef.current.stop();
+                  // The onstop handler will automatically process the recording
+                }
+              }}
+              style={{
+                background: '#7A54FF',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 12,
+                padding: '12px 24px',
+                fontSize: 16,
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(122,84,255,0.3)',
+                transition: 'all 0.2s ease',
+                marginTop: 16,
+                marginBottom: '32px' // Add extra bottom margin to ensure visibility
               }}
               onMouseEnter={(e) => {
                 e.target.style.background = '#6A44EF';
@@ -625,7 +621,7 @@ export default function VoiceJournal() {
         background: '#fff',
         boxShadow: '0 -2px 12px rgba(136,84,255,0.06)',
         padding: '20px 0 32px 0',
-        zIndex: 10,
+        zIndex: 100,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -691,6 +687,9 @@ export default function VoiceJournal() {
           </div>
         </div>
       )}
+      
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 } 

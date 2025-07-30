@@ -665,7 +665,21 @@ export default function JournalPage() {
           marginBottom: '16px',
           position: 'relative'
         }}>
-        <div className="date-heading">{formatDateHeading(selectedDate)}</div>
+          <div className="date-heading">{formatDateHeading(selectedDate)}</div>
+          {chatPreview && (
+            <div style={{
+              background: '#f0f0f0',
+              color: '#666',
+              padding: '4px 12px',
+              borderRadius: '12px',
+              fontSize: '12px',
+              fontWeight: '500',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
+              IN PROGRESS
+            </div>
+          )}
         {error && (
           <div style={{
             position: 'absolute',

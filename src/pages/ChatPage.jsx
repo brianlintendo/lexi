@@ -375,7 +375,36 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
       <ChatActionsRow
-        onSpeak={() => navigate('/voice-journal')}
+        onSpeak={() => {
+          // Save current conversation state to localStorage
+          const lastAIMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+          const currentPrompt = lastAIMessage && lastAIMessage.sender === 'ai' ? lastAIMessage.text : '';
+          
+          // Parse AI sections from the last message
+          const parseAISections = (text) => {
+            if (!text) return {};
+            const correctedMatch = text.match(/\*\*Corrected Entry:\*\*[\s\n]*([\s\S]*?)(?=\*\*Key Corrections:|$)/i);
+            const correctionsMatch = text.match(/\*\*Key Corrections:\*\*[\s\n]*([\s\S]*?)(?=\*\*Phrase to Remember:|$)/i);
+            const followupMatch = text.match(/\*\*Follow-up:\*\*[\s\n]*([\s\S]*?)(?=\*\*Follow-up Translation:|$)/i);
+            return {
+              corrected: correctedMatch ? correctedMatch[1].trim() : null,
+              corrections: correctionsMatch ? correctionsMatch[1].trim() : null,
+              followup: followupMatch ? followupMatch[1].trim() : null,
+            };
+          };
+          
+          const aiSections = parseAISections(currentPrompt);
+          
+          // Save to localStorage
+          localStorage.setItem('lexi-chat-messages', JSON.stringify(messages));
+          localStorage.setItem('lexi-voice-state', JSON.stringify({
+            currentPrompt: currentPrompt,
+            aiSections: aiSections
+          }));
+          
+          // Navigate to VoiceJournal
+          navigate('/voice-journal');
+        }}
         onSend={handleSend}
         onImage={() => {}}
         sendDisabled={!input.trim() || loading}

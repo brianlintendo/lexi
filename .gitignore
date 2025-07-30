@@ -4,3 +4,4 @@ dist
 .env
 bfg-secrets.txt
 *.env.backup
+.vercel

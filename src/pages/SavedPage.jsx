@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopNavHeader from '../components/TopNavHeader';
 import volumeIcon from '../assets/icons/volume.svg';
+import trashIcon from '../assets/icons/trash.svg';
 import { fetchSavedPhrases, removeSavedPhrase } from '../api/savedPhrases';
 import { useUser } from '../hooks/useAuth';
 import BottomNav from '../components/BottomNav';
@@ -95,7 +96,26 @@ export default function SavedPage() {
       <TopNavHeader title="Saved Phrases" onBack={() => navigate(-1)} />
       <div style={{ flex: 1, padding: '24px 18px 0 18px' }}>
         {!user?.id ? (
-          <div style={{ color: '#888', fontStyle: 'italic', marginTop: 40, textAlign: 'center' }}>Please sign in to view saved phrases.</div>
+          <div>
+            <div style={{ color: '#888', fontStyle: 'italic', marginBottom: 24, textAlign: 'center' }}>Please sign in to save your own phrases.</div>
+            <div style={{ color: '#666', fontSize: 14, marginBottom: 16, textAlign: 'center' }}>Here's an example of how saved phrases look:</div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              <li style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 8px 0 rgba(122,84,255,0.08)', marginBottom: 18, padding: '18px 18px 14px 18px', display: 'flex', flexDirection: 'column', gap: 4, position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontWeight: 700, fontSize: 18, color: '#4F2DD9', background: '#f3f0ff', borderRadius: 8, padding: '2px 8px' }}>Bonjour, comment allez-vous?</span>
+                  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <button onClick={() => playAudio('Bonjour, comment allez-vous?', 'fr')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', paddingLeft: '4px' }}>
+                      <img src={volumeIcon} alt="Play audio" style={{ width: 22, height: 22, opacity: 0.85 }} />
+                    </button>
+                    <div style={{ padding: '4px', borderRadius: 4, display: 'flex', alignItems: 'center', opacity: 0.3 }}>
+                      <img src={trashIcon} alt="Remove phrase" style={{ width: 18, height: 18 }} />
+                    </div>
+                  </div>
+                </div>
+                <div style={{ fontSize: 15, color: '#888', marginLeft: 2, marginTop: 2 }}>Hello, how are you?</div>
+              </li>
+            </ul>
+          </div>
         ) : saved.length === 0 ? (
           <div style={{ color: '#888', fontStyle: 'italic', marginTop: 40, textAlign: 'center' }}>No saved phrases yet.</div>
         ) : (
@@ -105,27 +125,26 @@ export default function SavedPage() {
               return (
                 <li key={item.id} style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 8px 0 rgba(122,84,255,0.08)', marginBottom: 18, padding: '18px 18px 14px 18px', display: 'flex', flexDirection: 'column', gap: 4, position: 'relative' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <button onClick={() => playAudio(item.phrase, lang)} style={{ background: 'none', border: 'none', padding: 0, marginRight: 2, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                      <img src={volumeIcon} alt="Play audio" style={{ width: 22, height: 22, opacity: 0.85 }} />
-                    </button>
                     <span style={{ fontWeight: 700, fontSize: 18, color: '#4F2DD9', background: '#f3f0ff', borderRadius: 8, padding: '2px 8px' }}>{item.phrase}</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: lang === 'fr' ? '#7A54FF' : '#00C853', borderRadius: 6, padding: '2px 7px', marginLeft: 6, letterSpacing: 1 }}>{lang}</span>
-                    <button 
-                      onClick={() => handleRemovePhrase(item.id)}
-                      style={{ 
-                        marginLeft: 'auto', 
-                        background: 'none', 
-                        border: 'none', 
-                        color: '#D32F2F', 
-                        fontWeight: 700, 
-                        cursor: 'pointer',
-                        fontSize: 12,
-                        padding: '4px 8px',
-                        borderRadius: 4
-                      }}
-                    >
-                      Remove
-                    </button>
+                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <button onClick={() => playAudio(item.phrase, lang)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', paddingLeft: '4px' }}>
+                        <img src={volumeIcon} alt="Play audio" style={{ width: 22, height: 22, opacity: 0.85 }} />
+                      </button>
+                      <button 
+                        onClick={() => handleRemovePhrase(item.id)}
+                        style={{ 
+                          background: 'none', 
+                          border: 'none', 
+                          cursor: 'pointer',
+                          padding: '4px',
+                          borderRadius: 4,
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <img src={trashIcon} alt="Remove phrase" style={{ width: 18, height: 18, opacity: 0.7 }} />
+                      </button>
+                    </div>
                   </div>
                   {item.translation && <div style={{ fontSize: 15, color: '#888', marginLeft: 2, marginTop: 2 }}>{item.translation}</div>}
                 </li>
