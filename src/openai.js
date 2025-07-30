@@ -98,9 +98,18 @@ export async function getChatCompletion(userText, systemMessage = `
 
 export async function transcribeWithWhisper(audioBlob, language = 'fr') {
   const formData = new FormData();
-  formData.append('file', audioBlob, 'audio.webm');
+  
+  // Determine file extension based on MIME type
+  const mimeType = audioBlob.type;
+  const fileExtension = mimeType.includes('webm') ? 'webm' : 
+                       mimeType.includes('mp4') ? 'mp4' : 
+                       mimeType.includes('wav') ? 'wav' : 'webm';
+  
+  formData.append('file', audioBlob, `audio.${fileExtension}`);
   formData.append('model', 'whisper-1');
   formData.append('language', language);
+  formData.append('response_format', 'text'); // Get text directly instead of JSON
+  formData.append('temperature', '0'); // Lower temperature for faster, more consistent results
 
   const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST',
@@ -111,14 +120,20 @@ export async function transcribeWithWhisper(audioBlob, language = 'fr') {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to transcribe audio');
+    const errorText = await response.text();
+    console.error('Whisper API error:', response.status, errorText);
+    throw new Error(`Failed to transcribe audio: ${response.status}`);
   }
 
-  const data = await response.json();
-  return data.text;
+  // Since we're using response_format=text, we get the text directly
+  const transcription = await response.text();
+  return transcription.trim();
 }
 
 export async function openaiTTS(text, voice = 'shimmer', model = 'tts-1', format = 'mp3') {
+  // Use faster model for better performance
+  const optimizedModel = model === 'tts-1' ? 'tts-1' : 'tts-1';
+  const optimizedVoice = voice === 'shimmer' ? 'shimmer' : voice;
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
   const response = await fetch('https://api.openai.com/v1/audio/speech', {
     method: 'POST',
@@ -127,10 +142,11 @@ export async function openaiTTS(text, voice = 'shimmer', model = 'tts-1', format
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model,
+      model: optimizedModel,
       input: text,
-      voice,
-      response_format: format
+      voice: optimizedVoice,
+      response_format: format,
+      speed: 1.0 // Normal speed for clarity
     })
   });
 

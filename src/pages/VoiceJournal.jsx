@@ -208,8 +208,25 @@ export default function VoiceJournal() {
     setIsListening(true);
     setIndicatorText('Listening…');
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new window.MediaRecorder(stream);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          sampleRate: 16000, // Lower sample rate for faster processing
+          channelCount: 1,   // Mono instead of stereo
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
+      });
+      
+      // Try to use more efficient audio format
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+        ? 'audio/webm;codecs=opus' 
+        : 'audio/webm';
+      
+      mediaRecorderRef.current = new window.MediaRecorder(stream, {
+        mimeType,
+        audioBitsPerSecond: 16000 // Lower bitrate for faster upload
+      });
       audioChunksRef.current = [];
       mediaRecorderRef.current.ondataavailable = (e) => {
         audioChunksRef.current.push(e.data);
@@ -217,9 +234,18 @@ export default function VoiceJournal() {
       mediaRecorderRef.current.onstop = async () => {
         setIsListening(false);
         setIndicatorText('Processing…');
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        // Use the detected MIME type for the blob
+        const mimeType = mediaRecorderRef.current.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        
+        // Log blob size for debugging
+        console.log(`Audio blob size: ${(audioBlob.size / 1024).toFixed(2)} KB`);
         try {
+          const startTime = performance.now();
           const transcription = await transcribeWithWhisper(audioBlob, language);
+          const endTime = performance.now();
+          console.log(`Transcription completed in ${(endTime - startTime).toFixed(2)}ms`);
+          
           setEntry(transcription);
           if (transcription.trim()) {
             setReadyToSubmit(true);
@@ -228,16 +254,17 @@ export default function VoiceJournal() {
             setIndicatorText('No speech detected. Tap to try again.');
           }
         } catch (err) {
+          console.error('Transcription error:', err);
           setIndicatorText('Transcription failed. Tap to try again.');
         }
       };
       mediaRecorderRef.current.start();
-      // Auto-stop after 10 seconds
+      // Auto-stop after 8 seconds (reduced from 10 for faster processing)
       setTimeout(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
           mediaRecorderRef.current.stop();
         }
-      }, 10000);
+      }, 8000);
     } catch (err) {
       setIsListening(false);
       setIndicatorText('Microphone error. Tap to try again.');
