@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { openaiTTS, transcribeWithWhisper, getChatCompletion, debugEnvironment } from '../openai';
 import ChatHeader from '../components/ChatHeader';
+import ChatBubble from '../components/ChatBubble';
 import micIcon from '../assets/icons/mic.svg';
 import micMuteIcon from '../assets/icons/microphone-mute.svg';
 import keyboardIcon from '../assets/icons/keyboard.svg';
@@ -215,20 +216,23 @@ export default function VoiceJournal() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
-          sampleRate: 16000,
-          channelCount: 1,
+          sampleRate: 16000, // Lower sample rate for faster processing
+          channelCount: 1,   // Mono instead of stereo
           echoCancellation: true,
-          noiseSuppression: true
+          noiseSuppression: true,
+          autoGainControl: true
         } 
       });
       
-      // Try to use mp4 format first, fallback to webm
-      const mimeType = MediaRecorder.isTypeSupported('audio/mp4') 
-        ? 'audio/mp4' 
+      // Try to use more efficient audio format
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+        ? 'audio/webm;codecs=opus' 
         : 'audio/webm';
       
-      console.log('VoiceJournal - Using MIME type:', mimeType);
-      mediaRecorderRef.current = new window.MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = new window.MediaRecorder(stream, {
+        mimeType,
+        audioBitsPerSecond: 16000 // Lower bitrate for faster upload
+      });
       audioChunksRef.current = [];
       mediaRecorderRef.current.ondataavailable = (e) => {
         audioChunksRef.current.push(e.data);
@@ -236,15 +240,17 @@ export default function VoiceJournal() {
       mediaRecorderRef.current.onstop = async () => {
         setIsListening(false);
         setIndicatorText('Processing…');
+        // Use the detected MIME type for the blob
         const mimeType = mediaRecorderRef.current.mimeType || 'audio/webm';
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
-        console.log('VoiceJournal - Audio format:', audioBlob.type);
-        console.log('VoiceJournal - Audio size:', audioBlob.size, 'bytes');
+        
+        // Log blob size for debugging
+        console.log(`Audio blob size: ${(audioBlob.size / 1024).toFixed(2)} KB`);
         try {
-          console.log('VoiceJournal - Starting transcription with language:', language);
-          console.log('VoiceJournal - Audio blob size:', audioBlob.size, 'bytes');
+          const startTime = performance.now();
           const transcription = await transcribeWithWhisper(audioBlob, language);
-          console.log('VoiceJournal - Transcription result:', transcription);
+          const endTime = performance.now();
+          console.log(`Transcription completed in ${(endTime - startTime).toFixed(2)}ms`);
           setEntry(transcription);
           if (transcription.trim()) {
             setReadyToSubmit(true);
@@ -253,23 +259,27 @@ export default function VoiceJournal() {
             setIndicatorText('No speech detected. Tap to try again.');
           }
         } catch (err) {
-          console.error('VoiceJournal - Transcription error:', err);
-          console.error('VoiceJournal - Error details:', err.message);
-          setIndicatorText(`Transcription failed: ${err.message}. Tap to try again.`);
+          console.error('Transcription error:', err);
+          setIndicatorText('Transcription failed. Tap to try again.');
         }
       };
       mediaRecorderRef.current.start();
-      // Auto-stop after 10 seconds
+      // Auto-stop after 8 seconds (reduced from 10 for faster processing)
       setTimeout(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
           mediaRecorderRef.current.stop();
         }
-      }, 10000);
+      }, 8000);
     } catch (err) {
       setIsListening(false);
       setIndicatorText('Microphone error. Tap to try again.');
     }
   };
+
+  // Debug environment variables on component mount
+  useEffect(() => {
+    debugEnvironment();
+  }, []);
 
   // On mount or prompt change, play prompt
   // useEffect(() => {
@@ -489,55 +499,22 @@ export default function VoiceJournal() {
             </div>
           )}
         </div>
-        {/* User's response (last entry) */}
-        {aiReplies.length > 0 && (
-          <div style={{
-            width: '100%',
-            // maxWidth: 320,
-            margin: '0 auto 16px auto',
-            background: '#f7f7fa',
-            borderRadius: 10,
-            padding: '18px 20px',
-            fontSize: 18,
-            color: '#222',
-            fontFamily: 'Albert Sans, sans-serif',
-            boxShadow: '0 1px 4px rgba(136,84,255,0.04)',
-            border: '1px solid #ece6ff',
-          }}>
-            {aiReplies[aiReplies.length-1].user}
-          </div>
-        )}
-        {/* Correction box UI */}
-        {(aiSections.corrected || aiSections.corrections) && (
-          <div style={{
-            width: '100%',
-            // maxWidth: 320,
-            margin: '0 auto 24px auto',
-            background: '#fff',
-            border: '2px solid #e0e0f7',
-            borderRadius: 14,
-            boxShadow: '0 2px 8px rgba(136,84,255,0.06)',
-            padding: '20px 20px 16px 20px',
-            fontFamily: 'Albert Sans, sans-serif',
-          }}>
-            {aiSections.corrected && (
-              <div style={{ marginBottom: 12 }}>
-                <span style={{ fontWeight: 700, color: '#7A54FF' }}>Corrected Entry:</span><br />
-                <span dangerouslySetInnerHTML={{ __html: aiSections.corrected.replace(/&lt;/g, '<').replace(/&gt;/g, '>') }} />
-              </div>
-            )}
-            {aiSections.corrections && (
-              <div>
-                <span style={{ fontWeight: 700, color: '#7A54FF' }}>Key Corrections:</span>
-                <ul style={{ margin: '8px 0 0 20px', padding: 0, color: '#444', fontWeight: 400, fontSize: 15 }}>
-                  {aiSections.corrections.split(/\n|\r/).filter(Boolean).map((line, i) => (
-                    <li key={i} dangerouslySetInnerHTML={{ __html: line.replace(/&lt;/g, '<').replace(/&gt;/g, '>') }} />
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
+        {/* Chat messages using ChatBubble component */}
+        <div style={{ width: '100%', marginBottom: 16 }}>
+          {aiReplies.length > 0 && (
+            <ChatBubble 
+              sender="user" 
+              text={aiReplies[aiReplies.length-1].user} 
+            />
+          )}
+          {aiReplies.length > 0 && (
+            <ChatBubble 
+              sender="ai" 
+              text={aiReplies[aiReplies.length-1].ai}
+              userText={aiReplies[aiReplies.length-1].user}
+            />
+          )}
+        </div>
         {/* Indicator and dots */}
         <div style={{ marginTop: 32, textAlign: 'center', width: '100%' }}>
           <div 
@@ -567,7 +544,6 @@ export default function VoiceJournal() {
               onChange={e => setEntry(e.target.value)}
               placeholder="Type your journal entry…"
               style={{
-                width: '100%',
                 minHeight: 80,
                 border: '1.5px solid #b9aaff',
                 borderRadius: 12,
@@ -581,7 +557,6 @@ export default function VoiceJournal() {
             <button
               onClick={handleSend}
               style={{
-                width: '100%',
                 background: 'linear-gradient(353deg, #5F46B4 26.75%, #7860CC 79.09%)',
                 color: '#fff',
                 border: 'none',

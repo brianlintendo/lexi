@@ -97,44 +97,65 @@ export async function getChatCompletion(userText, systemMessage = `
 }
 
 export async function transcribeWithWhisper(audioBlob, language = 'fr') {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  
-  console.log('transcribeWithWhisper - Environment check:');
-  console.log('transcribeWithWhisper - VITE_OPENAI_API_KEY exists:', !!import.meta.env.VITE_OPENAI_API_KEY);
-  console.log('transcribeWithWhisper - API key length:', apiKey ? apiKey.length : 0);
-  console.log('transcribeWithWhisper - API key starts with sk-:', apiKey ? apiKey.startsWith('sk-') : false);
-  
-  if (!apiKey) {
-    throw new Error('OpenAI API key is not configured');
-  }
-  
-  console.log('transcribeWithWhisper - Language:', language);
-  console.log('transcribeWithWhisper - API key present:', !!apiKey);
-  console.log('transcribeWithWhisper - Audio blob size:', audioBlob.size);
-  
   const formData = new FormData();
-  const fileExtension = audioBlob.type.includes('mp4') ? 'mp4' : 'webm';
+  
+  // Determine file extension based on MIME type
+  const mimeType = audioBlob.type;
+  const fileExtension = mimeType.includes('webm') ? 'webm' : 
+                       mimeType.includes('mp4') ? 'mp4' : 
+                       mimeType.includes('wav') ? 'wav' : 'webm';
+  
   formData.append('file', audioBlob, `audio.${fileExtension}`);
   formData.append('model', 'whisper-1');
   formData.append('language', language);
+  formData.append('response_format', 'text'); // Get text directly instead of JSON
+  formData.append('temperature', '0'); // Lower temperature for faster, more consistent results
 
   const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
     },
     body: formData,
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('transcribeWithWhisper - API Error:', response.status, errorText);
-    throw new Error(`Transcription failed: ${response.status} - ${errorText}`);
+    console.error('Whisper API error:', response.status, errorText);
+    throw new Error(`Failed to transcribe audio: ${response.status}`);
   }
 
-  const data = await response.json();
-  console.log('transcribeWithWhisper - Success:', data);
-  return data.text;
+  // Since we're using response_format=text, we get the text directly
+  const transcription = await response.text();
+  return transcription.trim();
+}
+
+export async function openaiTTS(text, voice = 'shimmer', model = 'tts-1', format = 'mp3') {
+  // Use faster model for better performance
+  const optimizedModel = model === 'tts-1' ? 'tts-1' : 'tts-1';
+  const optimizedVoice = voice === 'shimmer' ? 'shimmer' : voice;
+  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+  const response = await fetch('https://api.openai.com/v1/audio/speech', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: optimizedModel,
+      input: text,
+      voice: optimizedVoice,
+      response_format: format,
+      speed: 1.0 // Normal speed for clarity
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error('OpenAI TTS failed');
+  }
+
+  const audioBlob = await response.blob();
+  return URL.createObjectURL(audioBlob);
 }
 
 // Debug function to check environment variables
@@ -173,28 +194,4 @@ async function testApiKey() {
   } catch (error) {
     console.log('❌ API key test failed - network error:', error.message);
   }
-}
-
-export async function openaiTTS(text, voice = 'shimmer', model = 'tts-1', format = 'mp3') {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  const response = await fetch('https://api.openai.com/v1/audio/speech', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model,
-      input: text,
-      voice,
-      response_format: format
-    })
-  });
-
-  if (!response.ok) {
-    throw new Error('OpenAI TTS failed');
-  }
-
-  const audioBlob = await response.blob();
-  return URL.createObjectURL(audioBlob);
 }
