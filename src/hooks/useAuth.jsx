@@ -19,7 +19,34 @@ export function AuthProvider({ children }) {
     return () => { listener?.unsubscribe?.(); };
   }, []);
 
-  const signInWithGoogle = () => supabase.auth.signInWithOAuth({ provider: 'google' });
+  const signInWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({ 
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+          queryParams: {
+            prompt: 'select_account',
+            access_type: 'offline'
+          }
+        }
+      });
+      
+      if (error) {
+        console.error('Google OAuth error:', error);
+        // Handle specific OAuth errors
+        if (error.message.includes('disallowed_useragent')) {
+          throw new Error('Google sign-in is blocked. Please try using a different browser or contact support.');
+        }
+        throw error;
+      }
+      
+      return { data, error: null };
+    } catch (error) {
+      console.error('Google sign-in failed:', error);
+      return { data: null, error };
+    }
+  };
   const signInGuest = async () => {
     const email = `${uuid()}@guest.lexi`;
     const password = uuid(); // Generate a random password for guest
