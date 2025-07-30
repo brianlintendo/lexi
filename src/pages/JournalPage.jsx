@@ -252,6 +252,17 @@ export default function JournalPage() {
           }
         }
         
+        // Check if the journal entry is "No corrections needed" and replace with user's text
+        if (journalEntry.trim().toLowerCase().includes('no corrections needed')) {
+          console.log('Detected "No corrections needed", falling back to user text');
+          const userMessages = messages.filter(msg => msg.sender === 'user').map(msg => msg.text);
+          const userText = userMessages.join('\n\n');
+          if (userText.trim()) {
+            journalEntry = userText;
+            console.log('Replaced with user text:', journalEntry);
+          }
+        }
+        
         // Save as journal entry for the selected date
         console.log('Saving entry for date:', selectedKey, 'Entry:', journalEntry);
         setJournalEntries(prev => {
