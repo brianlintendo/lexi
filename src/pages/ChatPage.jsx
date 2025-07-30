@@ -13,28 +13,28 @@ import { useProfile } from '../components/JournalContext';
 
 const PROMPTS = {
   en: {
-    text: `Hello! I'm Lexi. Ready to write in English? How are you feeling today?`,
-    translation: `Hello! I'm Lexi. Ready to write in English? How are you feeling today?`
+    text: `Hello! I'm Lexi. Ready to write in English? What did you do today?`,
+    translation: `Hello! I'm Lexi. Ready to write in English? What did you do today?`
   },
   es: {
-    text: `¡Hola! Soy Lexi. ¿Listo(a) para escribir en español? ¿Cómo te sientes hoy?`,
-    translation: `Hello! I'm Lexi. Ready to write in Spanish? How are you feeling today?`
+    text: `¡Hola! Soy Lexi. ¿Listo(a) para escribir en español? ¿Qué hiciste hoy?`,
+    translation: `Hello! I'm Lexi. Ready to write in Spanish? What did you do today?`
   },
   fr: {
-    text: `Bonjour ! Je suis Lexi. Prêt(e) à écrire en français ? Comment tu te sens aujourd'hui ?`,
-    translation: `Hello! I'm Lexi. Ready to write in French? How are you feeling today?`
+    text: `Bonjour ! Je suis Lexi. Prêt(e) à écrire en français ? Qu'as-tu fait aujourd'hui ?`,
+    translation: `Hello! I'm Lexi. Ready to write in French? What did you do today?`
   },
   zh: {
-    text: `你好！我是 Lexi。准备好用中文写作了吗？你今天感觉怎么样？`,
-    translation: `Hello! I'm Lexi. Ready to write in Chinese? How are you feeling today?`
+    text: `你好！我是 Lexi。准备好用中文写作了吗？你今天做了什么？`,
+    translation: `Hello! I'm Lexi. Ready to write in Chinese? What did you do today?`
   },
   pt: {
-    text: `Olá! Eu sou a Lexi. Pronto(a) para escrever em português? Como você está se sentindo hoje?`,
-    translation: `Hello! I'm Lexi. Ready to write in Portuguese? How are you feeling today?`
+    text: `Olá! Eu sou a Lexi. Pronto(a) para escrever em português? O que você fez hoje?`,
+    translation: `Hello! I'm Lexi. Ready to write in Portuguese? What did you do today?`
   },
   it: {
-    text: `Ciao! Sono Lexi. Pronto(a) a scrivere in italiano? Come ti senti oggi?`,
-    translation: `Hello! I'm Lexi. Ready to write in Italian? How are you feeling today?`
+    text: `Ciao! Sono Lexi. Pronto(a) a scrivere in italiano? Cosa hai fatto oggi?`,
+    translation: `Hello! I'm Lexi. Ready to write in Italian? What did you do today?`
   },
 };
 const SYSTEM_PROMPTS = {
@@ -58,7 +58,7 @@ const THEME_OPTIONS = [
 ];
 
 const initialMessages = [
-  { sender: 'ai', text: 'Bonjour ! Je suis Lexi. Pose-moi une question ou commence à discuter en français !', timestamp: new Date() }
+  { sender: 'ai', text: 'Hello! I\'m Lexi. Ready to write in English? What did you do today?', timestamp: new Date() }
 ];
 
 export default function ChatPage() {
@@ -75,12 +75,12 @@ export default function ChatPage() {
         return JSON.parse(stored);
       } catch {
         return [
-          { sender: 'ai', text: (PROMPTS[language] || PROMPTS['fr']).text, timestamp: new Date() }
+          { sender: 'ai', text: (PROMPTS[language] || PROMPTS['en']).text, timestamp: new Date() }
         ];
       }
     }
     return [
-      { sender: 'ai', text: (PROMPTS[language] || PROMPTS['fr']).text, timestamp: new Date() }
+      { sender: 'ai', text: (PROMPTS[language] || PROMPTS['en']).text, timestamp: new Date() }
     ];
   });
   const [loading, setLoading] = useState(false);
@@ -117,12 +117,23 @@ export default function ChatPage() {
           try {
             let systemPrompt;
             console.log('Profile proficiency:', profile?.proficiency);
+            console.log('Current language:', language);
             if (profile?.proficiency) {
-              // Adjust system prompt based on proficiency
-              systemPrompt = getProficiencyPrompt(profile.proficiency);
-              console.log('Using proficiency-adjusted system prompt for level:', profile.proficiency);
+              // Adjust system prompt based on proficiency and language
+              systemPrompt = getProficiencyPrompt(profile.proficiency, language);
+              console.log('Using proficiency-adjusted system prompt for level:', profile.proficiency, 'and language:', language);
             } else {
-              console.log('No proficiency found, using default system prompt');
+              // Use default system prompt with language specification
+              const languageNames = {
+                'en': 'English', 'es': 'Spanish', 'fr': 'French', 'zh': 'Chinese', 'pt': 'Portuguese',
+                'it': 'Italian', 'de': 'German', 'ja': 'Japanese', 'ko': 'Korean', 'ru': 'Russian',
+                'ar': 'Arabic', 'hi': 'Hindi', 'nl': 'Dutch', 'sv': 'Swedish', 'no': 'Norwegian',
+                'da': 'Danish', 'fi': 'Finnish', 'pl': 'Polish', 'tr': 'Turkish', 'he': 'Hebrew',
+                'th': 'Thai', 'vi': 'Vietnamese', 'id': 'Indonesian', 'ms': 'Malay'
+              };
+              const targetLanguageName = languageNames[language] || language;
+              systemPrompt = `You are Lexi, a friendly language tutor. The user's target language is ${targetLanguageName} (${language}). You MUST ALWAYS respond in ${targetLanguageName}. When the user submits text, respond in this format: **Corrected Entry:** (if needed), **Key Corrections:** (if needed), **Phrase to Remember:** (if needed), **Vocabulary Enhancer:** (always), **Follow-up:** (in ${targetLanguageName}), **Follow-up Translation:** (English). CRITICAL: Respond in ${targetLanguageName} only.`;
+              console.log('Using default system prompt with language:', language);
             }
             const aiText = await getChatCompletion(last.text, systemPrompt);
             setMessages(prev => [...prev, { sender: 'ai', text: aiText, timestamp: new Date() }]);
@@ -157,7 +168,7 @@ export default function ChatPage() {
     if (prevLanguageRef.current !== language) {
       if (window.confirm('Changing language will reset your current conversation. Continue?')) {
         setMessages([
-          { sender: 'ai', text: (PROMPTS[language] || PROMPTS['fr']).text, timestamp: new Date() }
+          { sender: 'ai', text: (PROMPTS[language] || PROMPTS['en']).text, timestamp: new Date() }
         ]);
         setInput('');
         localStorage.removeItem('lexi-chat-messages');
@@ -173,21 +184,29 @@ export default function ChatPage() {
       const selectedTheme = location.state.selectedTheme;
       // Clear the state so it doesn't trigger again
       navigate(location.pathname, { replace: true, state: {} });
-      // Generate a prompt for the selected theme (same as handleThemeSave)
-      (async () => {
-        const prompt = `Theme: ${selectedTheme}\nLanguage: ${language}`;
-        const systemPrompt = `You are a friendly language tutor. ONLY reply with a single, short, motivating question or prompt about the given theme for the user to journal or chat about, in the target language. Do NOT include corrections, vocabulary, or any other sections. Example: What is your favorite travel memory?`;
-        let aiText = '';
-        try {
-          aiText = await getChatCompletion(prompt, systemPrompt);
-        } catch (err) {
-          console.error('AI error:', err);
-        }
-        if (!aiText || !aiText.trim()) {
-          aiText = `Let's talk about ${selectedTheme.toLowerCase()}! What's something interesting you can share?`;
-        }
-        setMessages(prev => [...prev, { sender: 'ai', text: aiText.trim(), timestamp: new Date() }]);
-      })();
+          // Generate a prompt for the selected theme (same as handleThemeSave)
+    (async () => {
+      const prompt = `Theme: ${selectedTheme}\nLanguage: ${language}`;
+      const languageNames = {
+        'en': 'English', 'es': 'Spanish', 'fr': 'French', 'zh': 'Chinese', 'pt': 'Portuguese',
+        'it': 'Italian', 'de': 'German', 'ja': 'Japanese', 'ko': 'Korean', 'ru': 'Russian',
+        'ar': 'Arabic', 'hi': 'Hindi', 'nl': 'Dutch', 'sv': 'Swedish', 'no': 'Norwegian',
+        'da': 'Danish', 'fi': 'Finnish', 'pl': 'Polish', 'tr': 'Turkish', 'he': 'Hebrew',
+        'th': 'Thai', 'vi': 'Vietnamese', 'id': 'Indonesian', 'ms': 'Malay'
+      };
+      const targetLanguageName = languageNames[language] || language;
+      const systemPrompt = `You are a friendly language tutor. The user's target language is ${targetLanguageName} (${language}). ONLY reply with a single, short, motivating question or prompt about the given theme for the user to journal or chat about, in ${targetLanguageName}. Do NOT include corrections, vocabulary, or any other sections. CRITICAL: Respond in ${targetLanguageName} only. Example: What is your favorite travel memory?`;
+      let aiText = '';
+      try {
+        aiText = await getChatCompletion(prompt, systemPrompt);
+      } catch (err) {
+        console.error('AI error:', err);
+      }
+      if (!aiText || !aiText.trim()) {
+        aiText = `Let's talk about ${selectedTheme.toLowerCase()}! What's something interesting you can share?`;
+      }
+      setMessages(prev => [...prev, { sender: 'ai', text: aiText.trim(), timestamp: new Date() }]);
+    })();
     }
   }, [location.state, language, navigate, location.pathname]);
 
@@ -205,7 +224,7 @@ export default function ChatPage() {
   const handleNewConversation = () => {
     if (window.confirm('Start a new conversation? This will clear your current chat history.')) {
       setMessages([
-        { sender: 'ai', text: (PROMPTS[language] || PROMPTS['fr']).text, timestamp: new Date() }
+        { sender: 'ai', text: (PROMPTS[language] || PROMPTS['en']).text, timestamp: new Date() }
       ]);
       setInput('');
       localStorage.removeItem('lexi-chat-messages');
@@ -252,7 +271,15 @@ export default function ChatPage() {
     setSelectedTheme(null);
     // Generate a prompt for the selected theme
     const prompt = `Theme: ${selectedTheme}\nLanguage: ${language}`;
-    const systemPrompt = `You are a friendly language tutor. ONLY reply with a single, short, motivating question or prompt about the given theme for the user to journal or chat about, in the target language. Do NOT include corrections, vocabulary, or any other sections. Example: What is your favorite travel memory?`;
+    const languageNames = {
+      'en': 'English', 'es': 'Spanish', 'fr': 'French', 'zh': 'Chinese', 'pt': 'Portuguese',
+      'it': 'Italian', 'de': 'German', 'ja': 'Japanese', 'ko': 'Korean', 'ru': 'Russian',
+      'ar': 'Arabic', 'hi': 'Hindi', 'nl': 'Dutch', 'sv': 'Swedish', 'no': 'Norwegian',
+      'da': 'Danish', 'fi': 'Finnish', 'pl': 'Polish', 'tr': 'Turkish', 'he': 'Hebrew',
+      'th': 'Thai', 'vi': 'Vietnamese', 'id': 'Indonesian', 'ms': 'Malay'
+    };
+    const targetLanguageName = languageNames[language] || language;
+    const systemPrompt = `You are a friendly language tutor. The user's target language is ${targetLanguageName} (${language}). ONLY reply with a single, short, motivating question or prompt about the given theme for the user to journal or chat about, in ${targetLanguageName}. Do NOT include corrections, vocabulary, or any other sections. CRITICAL: Respond in ${targetLanguageName} only. Example: What is your favorite travel memory?`;
     // Debug: log the prompt and systemPrompt
     console.log('Theme prompt:', prompt);
     console.log('Theme systemPrompt:', systemPrompt);
@@ -353,7 +380,7 @@ export default function ChatPage() {
 }
 
 // Helper to generate system prompt based on proficiency
-function getProficiencyPrompt(proficiency) {
+function getProficiencyPrompt(proficiency, targetLanguage) {
   let levelInstructions = '';
   switch (proficiency) {
     case 'A1':
@@ -379,14 +406,45 @@ function getProficiencyPrompt(proficiency) {
     default:
       levelInstructions = '';
   }
-  return `You are Lexi, a friendly, lightly humorous language tutor and conversation partner. ${levelInstructions}\n\n` +
-    `When the user submits a sentence or short text in any language, you MUST reply in this exact format:\n\n` +
+  
+  // Get language name for better context
+  const languageNames = {
+    'en': 'English',
+    'es': 'Spanish',
+    'fr': 'French',
+    'zh': 'Chinese',
+    'pt': 'Portuguese',
+    'it': 'Italian',
+    'de': 'German',
+    'ja': 'Japanese',
+    'ko': 'Korean',
+    'ru': 'Russian',
+    'ar': 'Arabic',
+    'hi': 'Hindi',
+    'nl': 'Dutch',
+    'sv': 'Swedish',
+    'no': 'Norwegian',
+    'da': 'Danish',
+    'fi': 'Finnish',
+    'pl': 'Polish',
+    'tr': 'Turkish',
+    'he': 'Hebrew',
+    'th': 'Thai',
+    'vi': 'Vietnamese',
+    'id': 'Indonesian',
+    'ms': 'Malay'
+  };
+  
+  const targetLanguageName = languageNames[targetLanguage] || targetLanguage;
+  
+  return `You are Lexi, a friendly, lightly humorous language tutor and conversation partner. The user's target language is ${targetLanguageName} (${targetLanguage}). You MUST ALWAYS respond in ${targetLanguageName}. ${levelInstructions}\n\n` +
+    `When the user submits a sentence or short text in any language, you MUST reply in this exact format and ALWAYS in ${targetLanguageName}:\n\n` +
     `**Corrected Entry:**  \n<ONLY include this section if there are actual corrections to make. If the user's text is perfect, skip this entire section. If corrections are needed, show the full corrected sentence with corrections bolded using <b>...</b> HTML tags>\n\n` +
     `**Key Corrections:**  \n<ONLY include this section if there are actual corrections to make. If the user's text is perfect, skip this entire section. If corrections are needed:\n- For each correction, show the entire corrected sentence for context, with the correction bolded using <b>...</b> HTML tags (not **...**). Briefly explain the change after the sentence.\n- Example: Je <b>suis allé</b> au marché. ("suis allé" is the correct past tense for "I went")\n- Do this for each important correction.>\n\n` +
     `**Phrase to Remember:**  \n<ONLY include this section if there are actual corrections to make. If the user's text is perfect, skip this entire section. If corrections are needed:\n- Provide 3-5 short phrases or collocations from the correction, each as a bullet, in quotes, with a simple translation if helpful. If fewer than 3 are relevant, just include those.>\n\n` +
     `**Vocabulary Enhancer:**  \n- Suggest 1-3 advanced, topic-relevant vocabulary words, idioms, or phrases (with translation or explanation) that would elevate the user's writing, based on the theme of their entry. Each should be a bullet, and always keep it relevant to the topic. For example, if the entry is about a picnic, suggest a phrase or idiom about picnics or food; if about a job, suggest something relevant to work or career. Example: Instead of 'la nourriture était très bien', suggest 'un festin pour les papilles' (a feast for the taste buds); instead of 'j'ai faim', suggest 'avoir un petit creux' (to feel a bit peckish).\n\n` +
-    `**Follow-up:**  \n<A natural follow-up question in the target language, related to what the user wrote. Make it lighthearted, playful, and banter-y, encouraging a friendly and fun conversation.>\n\n` +
+    `**Follow-up:**  \n<A natural follow-up question in ${targetLanguageName}, related to what the user wrote. Make it lighthearted, playful, and banter-y, encouraging a friendly and fun conversation.>\n\n` +
     `**Follow-up Translation:**  \n<The English translation of the follow-up question above>\n\n` +
     `IMPORTANT: Only include the "Corrected Entry", "Key Corrections", and "Phrase to Remember" sections if there are actual corrections to make. If the user's text is perfect, skip these three sections entirely and go straight to "Vocabulary Enhancer".\n\n` +
-    `Always respond in the user's target language first, and — only if absolutely needed — add a very brief English note in parentheses for clarity. You are a gentle, female-voiced language tutor who speaks like a calm, caring friend: use light, tasteful humor rather than over-the-top jokes, offer meditative, thoughtful encouragement, and gently nudge the learner with kind corrections and supportive follow-up questions.`;
-} 
+    `CRITICAL: You MUST respond in ${targetLanguageName} only. Do not respond in any other language unless specifically asked. You are a gentle, female-voiced language tutor who speaks like a calm, caring friend: use light, tasteful humor rather than over-the-top jokes, offer meditative, thoughtful encouragement, and gently nudge the learner with kind corrections and supportive follow-up questions.`;
+}  

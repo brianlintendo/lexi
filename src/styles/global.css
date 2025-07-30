@@ -246,6 +246,268 @@ textarea {
   caret-color: #7A54FF;
 }
 
+/* Settings Page Styles */
+.settings-page {
+  min-height: 100vh;
+  background: var(--color-onboard-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-content {
+  flex: 1;
+  padding: 24px 16px 120px 16px;
+}
+
+.settings-container {
+  max-width: 420px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Section Container Styles */
+.account-section,
+.app-settings-section,
+.preferences-section {
+  background: var(--color-secondary);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(122, 84, 255, 0.06);
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 16px;
+}
+
+/* Account Section Styles */
+.sign-in-description {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.sign-in-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.google-sign-in-btn {
+  background: #4285F4;
+  color: var(--color-secondary);
+  border: none;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--transition-normal);
+}
+
+.google-sign-in-btn:hover {
+  background: #3367D6;
+  transform: translateY(-1px);
+}
+
+.google-icon {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.guest-sign-in-btn {
+  background: var(--color-secondary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-bubble-ai);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--transition-normal);
+}
+
+.guest-sign-in-btn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-bg-default);
+}
+
+.guest-icon {
+  font-size: 16px;
+}
+
+.account-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-email {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.user-status {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.sign-out-btn {
+  background: #dc3545;
+  color: var(--color-secondary);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: all var(--transition-normal);
+}
+
+.sign-out-btn:hover {
+  background: #c82333;
+}
+
+/* App Settings Section Styles */
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-bg-default);
+}
+
+.setting-row:last-child {
+  border-bottom: none;
+}
+
+.setting-label {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 16px;
+}
+
+.setting-value {
+  color: var(--color-text-secondary);
+  font-size: 16px;
+}
+
+/* Toggle Switch Styles */
+.toggle-switch {
+  width: 50px;
+  height: 30px;
+  background: #ececec;
+  border-radius: 15px;
+  position: relative;
+  cursor: pointer;
+  transition: background var(--transition-normal);
+}
+
+.toggle-switch.active {
+  background: var(--color-primary);
+}
+
+.toggle-slider {
+  width: 26px;
+  height: 26px;
+  background: var(--color-secondary);
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: left var(--transition-normal);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-switch.active .toggle-slider {
+  left: 22px;
+}
+
+.clear-btn {
+  background: #dc3545;
+  color: var(--color-secondary);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.clear-btn:hover {
+  background: #c82333;
+}
+
+/* Preferences Section Styles */
+.preference-row {
+  margin-bottom: 20px;
+}
+
+.preference-row:last-child {
+  margin-bottom: 0;
+}
+
+.preference-label {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 16px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.dropdown-container {
+  position: relative;
+}
+
+.preference-dropdown {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 16px;
+  border: 1px solid var(--color-bubble-ai);
+  border-radius: 12px;
+  background: var(--color-secondary);
+  color: var(--color-text-primary);
+  font-family: 'Albert Sans', sans-serif;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color var(--transition-normal);
+}
+
+.preference-dropdown:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(122, 84, 255, 0.1);
+}
+
+.dropdown-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.saving-indicator {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
 /* Container Styles */
 .container {
   max-width: 550px;

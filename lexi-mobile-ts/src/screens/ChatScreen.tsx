@@ -23,8 +23,12 @@ const PROMPT_BUBBLES: Record<string, string> = {
   es: '¡Hola! ¿Listo(a) para escribir en español? 😊\n¿Cómo te sientes hoy?',
 };
 
-const SYSTEM_PROMPT = `
+// Dynamically build the system prompt to always use the selected language
+function buildSystemPrompt(languageLabel: string, languageCode: string) {
+  return `
 You are Lexi, a friendly, lightly humorous language tutor and conversation partner.
+
+The user wants to practice ${languageLabel} (${languageCode}). All main responses, corrections, and follow-up questions should be in ${languageLabel} unless otherwise specified. You may include brief English addenda for explanations or translations, but the main content and all follow-up questions must be in ${languageLabel}.
 
 When the user submits a sentence or short text in any language, you MUST reply in this exact format:
 
@@ -44,11 +48,12 @@ When the user submits a sentence or short text in any language, you MUST reply i
 <Suggest 1-3 additional helpful words or phrases related to the user's text or your correction. These should be new, useful vocabulary for the user to learn (not just repeats). For each, provide a short translation or explanation.>
 
 **Follow-up:**  
-<Ask a natural, friendly follow-up question related to the user's text, in the target language.>
+<Ask a natural, friendly follow-up question related to the user's text, in ${languageLabel}.>
 
 **Follow-up Translation:**  
 <Provide a short English translation of the follow-up question.>
 `;
+}
 
 const THEME_OPTIONS = [
   'Travel',
@@ -342,7 +347,8 @@ const ChatScreen: React.FC = () => {
       (async () => {
         setLoading(true);
         try {
-          const aiText = await getChatCompletion(messages[1].text, SYSTEM_PROMPT);
+          const systemPrompt = buildSystemPrompt(language.label, language.code);
+          const aiText = await getChatCompletion(messages[1].text, systemPrompt);
           setMessages(prev => [...prev, { sender: 'ai', text: aiText }]);
         } catch (err) {
           setMessages(prev => [...prev, { sender: 'ai', text: 'Sorry, there was an error contacting Lexi. Please try again.' }]);
@@ -354,13 +360,14 @@ const ChatScreen: React.FC = () => {
         }
       })();
     }
-  }, [hasHandledJournalEntry, messages]);
+  }, [hasHandledJournalEntry, messages, language]);
 
   // Word count logic
   const wordCount = messages.filter(m => m.sender === 'user').map(m => m.text).join(' ').split(/\s+/).filter(Boolean).length + input.split(/\s+/).filter(Boolean).length;
   const wordLimit = 1000;
   const progress = Math.min(wordCount / wordLimit, 1);
 
+  // Also update handleSend to use the dynamic system prompt
   const handleSend = async () => {
     if (!input.trim() || loading) return;
     const userMsg = { sender: 'user', text: input };
@@ -371,7 +378,8 @@ const ChatScreen: React.FC = () => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
     try {
-      const aiText = await getChatCompletion(input, SYSTEM_PROMPT);
+      const systemPrompt = buildSystemPrompt(language.label, language.code);
+      const aiText = await getChatCompletion(input, systemPrompt);
       setMessages(prev => [...prev, { sender: 'ai', text: aiText }]);
     } catch (err) {
       setMessages(prev => [...prev, { sender: 'ai', text: 'Sorry, there was an error contacting Lexi. Please try again.' }]);

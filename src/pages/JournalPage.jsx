@@ -239,7 +239,7 @@ export default function JournalPage() {
   const selectedKey = getDateKey(selectedDate);
   const todayKey = getDateKey(today);
 
-  // Load journal entries from Supabase on mount
+  // Load journal entries from Supabase on mount and when user changes
   useEffect(() => {
     if (user?.id) {
       setLoading(true);
@@ -316,7 +316,18 @@ export default function JournalPage() {
         } catch {}
       }
     }
-  }, [user?.id, selectedKey]);
+  }, [user?.id]); // Removed selectedKey dependency to prevent interference with typing
+
+  // Separate useEffect to handle text loading when selectedKey changes (date selection)
+  useEffect(() => {
+    const entry = journalEntries[selectedKey];
+    if (entry) {
+      const entryText = typeof entry === 'object' ? entry.text : entry;
+      setText(entryText);
+    } else {
+      setText('');
+    }
+  }, [selectedKey, journalEntries]);
 
   // Sync localStorage with Supabase when user logs in
   useEffect(() => {
@@ -385,30 +396,30 @@ export default function JournalPage() {
   };
 
   const PROMPT_BUBBLES = {
-    en: "Hello! Ready to write in English? How are you feeling today?",
-    es: "¡Hola! ¿Listo(a) para escribir en español? ¿Cómo te sientes hoy?",
-    fr: "Bonjour ! Prêt(e) à écrire en français ? Comment tu te sens aujourd'hui ?",
-    zh: "你好！准备好用中文写作了吗？你今天感觉怎么样？",
-    pt: "Olá! Pronto(a) para escrever em português? Como você está se sentindo hoje?",
-    it: "Ciao! Pronto(a) a scrivere in italiano? Come ti senti oggi?",
-    de: "Hallo! Bereit, auf Deutsch zu schreiben? Wie fühlst du dich heute?",
-    ja: "こんにちは！日本語で書く準備はできましたか？今日はどんな気分ですか？",
-    ko: "안녕하세요! 한국어로 글쓰기 준비가 되셨나요? 오늘 기분이 어떠신가요?",
-    ru: "Привет! Готов писать на русском? Как ты себя чувствуешь сегодня?",
-    ar: "مرحباً! مستعد للكتابة بالعربية؟ كيف تشعر اليوم؟",
-    hi: "नमस्ते! हिंदी में लिखने के लिए तैयार हैं? आज आप कैसा महसूस कर रहे हैं?",
-    nl: "Hallo! Klaar om in het Nederlands te schrijven? Hoe voel je je vandaag?",
-    sv: "Hej! Redo att skriva på svenska? Hur mår du idag?",
-    no: "Hei! Klar til å skrive på norsk? Hvordan føler du deg i dag?",
-    da: "Hej! Klar til at skrive på dansk? Hvordan føler du dig i dag?",
-    fi: "Hei! Valmis kirjoittamaan suomeksi? Miten sinusta tuntuu tänään?",
-    pl: "Cześć! Gotowy do pisania po polsku? Jak się dzisiaj czujesz?",
-    tr: "Merhaba! Türkçe yazmaya hazır mısın? Bugün nasıl hissediyorsun?",
-    he: "שלום! מוכן לכתוב בעברית? איך אתה מרגיש היום?",
-    th: "สวัสดี! พร้อมเขียนภาษาไทยแล้วหรือยัง? วันนี้คุณรู้สึกอย่างไร?",
-    vi: "Xin chào! Sẵn sàng viết bằng tiếng Việt chưa? Hôm nay bạn cảm thấy thế nào?",
-    id: "Halo! Siap menulis dalam bahasa Indonesia? Bagaimana perasaanmu hari ini?",
-    ms: "Hai! Sedia menulis dalam bahasa Melayu? Bagaimana perasaan anda hari ini?"
+    en: "Hello! Ready to write in English? What did you do today?",
+    es: "¡Hola! ¿Listo(a) para escribir en español? ¿Qué hiciste hoy?",
+    fr: "Bonjour ! Prêt(e) à écrire en français ? Qu'as-tu fait aujourd'hui ?",
+    zh: "你好！准备好用中文写作了吗？你今天做了什么？",
+    pt: "Olá! Pronto(a) para escrever em português? O que você fez hoje?",
+    it: "Ciao! Pronto(a) a scrivere in italiano? Cosa hai fatto oggi?",
+    de: "Hallo! Bereit, auf Deutsch zu schreiben? Was hast du heute gemacht?",
+    ja: "こんにちは！日本語で書く準備はできましたか？今日は何をしましたか？",
+    ko: "안녕하세요! 한국어로 글쓰기 준비가 되셨나요? 오늘 무엇을 하셨나요?",
+    ru: "Привет! Готов писать на русском? Что ты делал сегодня?",
+    ar: "مرحباً! مستعد للكتابة بالعربية؟ ماذا فعلت اليوم؟",
+    hi: "नमस्ते! हिंदी में लिखने के लिए तैयार हैं? आज आपने क्या किया?",
+    nl: "Hallo! Klaar om in het Nederlands te schrijven? Wat heb je vandaag gedaan?",
+    sv: "Hej! Redo att skriva på svenska? Vad gjorde du idag?",
+    no: "Hei! Klar til å skrive på norsk? Hva gjorde du i dag?",
+    da: "Hej! Klar til at skrive på dansk? Hvad gjorde du i dag?",
+    fi: "Hei! Valmis kirjoittamaan suomeksi? Mitä sinä teit tänään?",
+    pl: "Cześć! Gotowy do pisania po polsku? Co robiłeś dzisiaj?",
+    tr: "Merhaba! Türkçe yazmaya hazır mısın? Bugün ne yaptın?",
+    he: "שלום! מוכן לכתוב בעברית? מה עשית היום?",
+    th: "สวัสดี! พร้อมเขียนภาษาไทยแล้วหรือยัง? วันนี้คุณทำอะไรบ้าง?",
+    vi: "Xin chào! Sẵn sàng viết bằng tiếng Việt chưa? Hôm nay bạn đã làm gì?",
+    id: "Halo! Siap menulis dalam bahasa Indonesia? Apa yang kamu lakukan hari ini?",
+    ms: "Hai! Sedia menulis dalam bahasa Melayu? Apa yang anda lakukan hari ini?"
   };
   const PLACEHOLDERS = {
     en: "I feel...",

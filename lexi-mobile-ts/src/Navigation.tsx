@@ -24,13 +24,13 @@ export type LanguageType = {
 
 export type RootStackParamList = {
   Splash: undefined;
+  NameEntry: undefined;
+  LanguageSelect: { name: string } | undefined;
+  Proficiency: { name: string; language: string } | undefined;
+  Motivation: { name: string; language: string; proficiency: string } | undefined;
   Home: undefined;
   Chat: { journalEntry?: string; language?: LanguageType } | undefined;
   Journal: undefined;
-  LanguageSelect: undefined;
-  NameEntry: undefined;
-  OnboardMotivation: undefined;
-  Proficiency: undefined;
   Prompts: undefined;
   Saved: undefined;
   Settings: undefined;
@@ -42,15 +42,15 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function Navigation() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Journal" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
+        <Stack.Screen name="NameEntry" component={NameEntryScreen} />
+        <Stack.Screen name="LanguageSelect" component={LanguageSelectScreen} />
+        <Stack.Screen name="Proficiency" component={ProficiencyScreen} />
+        <Stack.Screen name="Motivation" component={OnboardMotivationScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen name="Journal" component={JournalScreen} />
-        <Stack.Screen name="LanguageSelect" component={LanguageSelectScreen} />
-        <Stack.Screen name="NameEntry" component={NameEntryScreen} />
-        <Stack.Screen name="OnboardMotivation" component={OnboardMotivationScreen} />
-        <Stack.Screen name="Proficiency" component={ProficiencyScreen} />
         <Stack.Screen name="Prompts" component={PromptsScreen} />
         <Stack.Screen name="Saved" component={SavedScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />

@@ -5,7 +5,7 @@ import ChatHeader from '../components/ChatHeader';
 import micIcon from '../assets/icons/mic.svg';
 import micMuteIcon from '../assets/icons/microphone-mute.svg';
 import keyboardIcon from '../assets/icons/keyboard.svg';
-import { useProfile } from '../components/JournalContext';
+import { useProfile, useJournal } from '../components/JournalContext';
 
 // Animated dots
 function SpeakingDots({ animate = true }) {
@@ -69,7 +69,40 @@ function parseAISections(text) {
 export default function VoiceJournal() {
   const navigate = useNavigate();
   const { profile } = useProfile();
-  const [promptText, setPromptText] = useState('Bonjour ! Pret(e) a ecrire en francais ? 😊 Comment tu te sens aujourd\'hui ?');
+  const { language } = useJournal();
+  
+  // Get language-specific initial prompts
+  const getInitialPrompt = (lang) => {
+    const prompts = {
+      en: "Hello! Ready to write in English? 😊 What did you do today?",
+      es: "¡Hola! ¿Listo(a) para escribir en español? 😊 ¿Qué hiciste hoy?",
+      fr: "Bonjour ! Prêt(e) à écrire en français ? 😊 Qu'as-tu fait aujourd'hui ?",
+      zh: "你好！准备好用中文写作了吗？😊 你今天做了什么？",
+      pt: "Olá! Pronto(a) para escrever em português? 😊 O que você fez hoje?",
+      it: "Ciao! Pronto(a) a scrivere in italiano? 😊 Cosa hai fatto oggi?",
+      de: "Hallo! Bereit, auf Deutsch zu schreiben? 😊 Was hast du heute gemacht?",
+      ja: "こんにちは！日本語で書く準備はできましたか？😊 今日は何をしましたか？",
+      ko: "안녕하세요! 한국어로 글쓰기 준비가 되셨나요? 😊 오늘 무엇을 하셨나요?",
+      ru: "Привет! Готов писать на русском? 😊 Что ты делал сегодня?",
+      ar: "مرحباً! مستعد للكتابة بالعربية؟😊 ماذا فعلت اليوم؟",
+      hi: "नमस्ते! हिंदी में लिखने के लिए तैयार हैं? 😊 आज आपने क्या किया?",
+      nl: "Hallo! Klaar om in het Nederlands te schrijven? 😊 Wat heb je vandaag gedaan?",
+      sv: "Hej! Redo att skriva på svenska? 😊 Vad gjorde du idag?",
+      no: "Hei! Klar til å skrive på norsk? 😊 Hva gjorde du i dag?",
+      da: "Hej! Klar til at skrive på dansk? 😊 Hvad gjorde du i dag?",
+      fi: "Hei! Valmis kirjoittamaan suomeksi? 😊 Mitä sinä teit tänään?",
+      pl: "Cześć! Gotowy do pisania po polsku? 😊 Co robiłeś dzisiaj?",
+      tr: "Merhaba! Türkçe yazmaya hazır mısın? 😊 Bugün ne yaptın?",
+      he: "שלום! מוכן לכתוב בעברית? 😊 מה עשית היום?",
+      th: "สวัสดี! พร้อมเขียนภาษาไทยแล้วหรือยัง? 😊 วันนี้คุณทำอะไรบ้าง?",
+      vi: "Xin chào! Sẵn sàng viết bằng tiếng Việt chưa? 😊 Hôm nay bạn đã làm gì?",
+      id: "Halo! Siap menulis dalam bahasa Indonesia? 😊 Apa yang kamu lakukan hari ini?",
+      ms: "Hai! Sedia menulis dalam bahasa Melayu? 😊 Apa yang anda lakukan hari ini?"
+    };
+    return prompts[lang] || prompts['en'];
+  };
+  
+  const [promptText, setPromptText] = useState(getInitialPrompt(language));
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(false);
@@ -84,6 +117,13 @@ export default function VoiceJournal() {
   // Track if user has interacted
   const [hasInteracted, setHasInteracted] = useState(false);
   const [readyToSubmit, setReadyToSubmit] = useState(false);
+
+  // Update initial prompt when language changes (only if no conversation has started)
+  useEffect(() => {
+    if (!hasInteracted && aiReplies.length === 0) {
+      setPromptText(getInitialPrompt(language));
+    }
+  }, [language, hasInteracted, aiReplies.length]);
 
   // Load preserved conversation state from localStorage on mount
   useEffect(() => {
@@ -179,7 +219,7 @@ export default function VoiceJournal() {
         setIndicatorText('Processing…');
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         try {
-          const transcription = await transcribeWithWhisper(audioBlob, 'fr'); // TODO: use dynamic language
+          const transcription = await transcribeWithWhisper(audioBlob, language);
           setEntry(transcription);
           if (transcription.trim()) {
             setReadyToSubmit(true);
@@ -226,7 +266,18 @@ export default function VoiceJournal() {
       (async () => {
         let systemPrompt;
         if (profile?.proficiency) {
-          systemPrompt = getProficiencyPrompt(profile.proficiency);
+          systemPrompt = getProficiencyPrompt(profile.proficiency, language);
+        } else {
+          // Use default system prompt with language specification
+          const languageNames = {
+            'en': 'English', 'es': 'Spanish', 'fr': 'French', 'zh': 'Chinese', 'pt': 'Portuguese',
+            'it': 'Italian', 'de': 'German', 'ja': 'Japanese', 'ko': 'Korean', 'ru': 'Russian',
+            'ar': 'Arabic', 'hi': 'Hindi', 'nl': 'Dutch', 'sv': 'Swedish', 'no': 'Norwegian',
+            'da': 'Danish', 'fi': 'Finnish', 'pl': 'Polish', 'tr': 'Turkish', 'he': 'Hebrew',
+            'th': 'Thai', 'vi': 'Vietnamese', 'id': 'Indonesian', 'ms': 'Malay'
+          };
+          const targetLanguageName = languageNames[language] || language;
+          systemPrompt = `You are Lexi, a friendly language tutor. The user's target language is ${targetLanguageName} (${language}). You MUST ALWAYS respond in ${targetLanguageName}. When the user submits text, respond in this format: **Corrected Entry:** (if needed), **Key Corrections:** (if needed), **Phrase to Remember:** (if needed), **Vocabulary Enhancer:** (always), **Follow-up:** (in ${targetLanguageName}), **Follow-up Translation:** (English). CRITICAL: Respond in ${targetLanguageName} only.`;
         }
         const aiReply = await getChatCompletion(entry, systemPrompt);
         handleAIReply(entry, aiReply);
@@ -276,11 +327,22 @@ export default function VoiceJournal() {
     if (!entry.trim()) return;
     let systemPrompt;
     console.log('VoiceJournal - Profile proficiency:', profile?.proficiency);
+    console.log('VoiceJournal - Current language:', language);
     if (profile?.proficiency) {
-      systemPrompt = getProficiencyPrompt(profile.proficiency);
-      console.log('VoiceJournal - Using proficiency-adjusted system prompt for level:', profile.proficiency);
+      systemPrompt = getProficiencyPrompt(profile.proficiency, language);
+      console.log('VoiceJournal - Using proficiency-adjusted system prompt for level:', profile.proficiency, 'and language:', language);
     } else {
-      console.log('VoiceJournal - No proficiency found, using default system prompt');
+      // Use default system prompt with language specification
+      const languageNames = {
+        'en': 'English', 'es': 'Spanish', 'fr': 'French', 'zh': 'Chinese', 'pt': 'Portuguese',
+        'it': 'Italian', 'de': 'German', 'ja': 'Japanese', 'ko': 'Korean', 'ru': 'Russian',
+        'ar': 'Arabic', 'hi': 'Hindi', 'nl': 'Dutch', 'sv': 'Swedish', 'no': 'Norwegian',
+        'da': 'Danish', 'fi': 'Finnish', 'pl': 'Polish', 'tr': 'Turkish', 'he': 'Hebrew',
+        'th': 'Thai', 'vi': 'Vietnamese', 'id': 'Indonesian', 'ms': 'Malay'
+      };
+      const targetLanguageName = languageNames[language] || language;
+      systemPrompt = `You are Lexi, a friendly language tutor. The user's target language is ${targetLanguageName} (${language}). You MUST ALWAYS respond in ${targetLanguageName}. When the user submits text, respond in this format: **Corrected Entry:** (if needed), **Key Corrections:** (if needed), **Phrase to Remember:** (if needed), **Vocabulary Enhancer:** (always), **Follow-up:** (in ${targetLanguageName}), **Follow-up Translation:** (English). CRITICAL: Respond in ${targetLanguageName} only.`;
+      console.log('VoiceJournal - Using default system prompt with language:', language);
     }
     const aiReply = await getChatCompletion(entry, systemPrompt);
     handleAIReply(entry, aiReply);
@@ -591,7 +653,7 @@ export default function VoiceJournal() {
 } 
 
 // Helper to generate system prompt based on proficiency (same as in ChatPage)
-function getProficiencyPrompt(proficiency) {
+function getProficiencyPrompt(proficiency, targetLanguage) {
   let levelInstructions = '';
   switch (proficiency) {
     case 'A1':
@@ -617,13 +679,25 @@ function getProficiencyPrompt(proficiency) {
     default:
       levelInstructions = '';
   }
-  return `You are Lexi, a friendly, lightly humorous language tutor and conversation partner. ${levelInstructions}\n\n` +
-    `When the user submits a sentence or short text in any language, you MUST reply in this exact format:\n\n` +
+  
+  // Get language name for better context
+  const languageNames = {
+    'en': 'English', 'es': 'Spanish', 'fr': 'French', 'zh': 'Chinese', 'pt': 'Portuguese',
+    'it': 'Italian', 'de': 'German', 'ja': 'Japanese', 'ko': 'Korean', 'ru': 'Russian',
+    'ar': 'Arabic', 'hi': 'Hindi', 'nl': 'Dutch', 'sv': 'Swedish', 'no': 'Norwegian',
+    'da': 'Danish', 'fi': 'Finnish', 'pl': 'Polish', 'tr': 'Turkish', 'he': 'Hebrew',
+    'th': 'Thai', 'vi': 'Vietnamese', 'id': 'Indonesian', 'ms': 'Malay'
+  };
+  
+  const targetLanguageName = languageNames[targetLanguage] || targetLanguage;
+  
+  return `You are Lexi, a friendly, lightly humorous language tutor and conversation partner. The user's target language is ${targetLanguageName} (${targetLanguage}). You MUST ALWAYS respond in ${targetLanguageName}. ${levelInstructions}\n\n` +
+    `When the user submits a sentence or short text in any language, you MUST reply in this exact format and ALWAYS in ${targetLanguageName}:\n\n` +
     `**Corrected Entry:**  \n<ONLY include this section if there are actual corrections to make. If the user's text is perfect, skip this entire section. If corrections are needed, show the full corrected sentence with corrections bolded using <b>...</b> HTML tags>\n\n` +
     `**Key Corrections:**  \n<ONLY include this section if there are actual corrections to make. If the user's text is perfect, skip this entire section. If corrections are needed:\n- For each correction, show the entire corrected sentence for context, with the correction bolded using <b>...</b> HTML tags (not **...**). Briefly explain the change after the sentence.\n- Example: Je <b>suis allé</b> au marché. ("suis allé" is the correct past tense for "I went")\n- Do this for each important correction.>\n\n` +
     `**Phrase to Remember:**  \n<ONLY include this section if there are actual corrections to make. If the user's text is perfect, skip this entire section. If corrections are needed:\n- Provide 3-5 short phrases or collocations from the correction, each as a bullet, in quotes, with a simple translation if helpful. If fewer than 3 are relevant, just include those.>\n\n` +
     `**Vocabulary Enhancer:**  \n- Suggest 1-3 advanced, topic-relevant vocabulary words, idioms, or phrases (with translation or explanation) that would elevate the user's writing, based on the theme of their entry. Each should be a bullet, and always keep it relevant to the topic. For example, if the entry is about a picnic, suggest a phrase or idiom about picnics or food; if about a job, suggest something relevant to work or career. Example: Instead of 'la nourriture était très bien', suggest 'un festin pour les papilles' (a feast for the taste buds); instead of 'j'ai faim', suggest 'avoir un petit creux' (to feel a bit peckish).\n\n` +
-    `**Follow-up:**  \n<A natural follow-up question in the target language, related to what the user wrote. Make it lighthearted, playful, and banter-y, encouraging a friendly and fun conversation.>\n\n` +
+    `**Follow-up:**  \n<A natural follow-up question in ${targetLanguageName}, related to what the user wrote. Make it lighthearted, playful, and banter-y, encouraging a friendly and fun conversation.>\n\n` +
     `IMPORTANT: Only include the "Corrected Entry", "Key Corrections", and "Phrase to Remember" sections if there are actual corrections to make. If the user's text is perfect, skip these three sections entirely and go straight to "Vocabulary Enhancer".\n\n` +
-    `Always respond in the user's target language first, and — only if absolutely needed — add a very brief English note in parentheses for clarity. You are a gentle, female-voiced language tutor who speaks like a calm, caring friend: use light, tasteful humor rather than over-the-top jokes, offer meditative, thoughtful encouragement, and gently nudge the learner with kind corrections and supportive follow-up questions.`;
+    `CRITICAL: You MUST respond in ${targetLanguageName} only. Do not respond in any other language unless specifically asked. You are a gentle, female-voiced language tutor who speaks like a calm, caring friend: use light, tasteful humor rather than over-the-top jokes, offer meditative, thoughtful encouragement, and gently nudge the learner with kind corrections and supportive follow-up questions.`;
 } 
