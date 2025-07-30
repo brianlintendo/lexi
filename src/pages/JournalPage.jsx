@@ -242,6 +242,7 @@ export default function JournalPage() {
         setText(journalEntry);
         // Mark as submitted in localStorage
         localStorage.setItem(`submitted-${selectedKey}`, 'true');
+        console.log('Setting showCompletedEntry to true');
         setShowCompletedEntry(true);
         
         // Update Supabase to mark as submitted
@@ -453,10 +454,12 @@ export default function JournalPage() {
         (typeof entry === 'object' && (entry.ai_reply || entry.submitted)) ||
         (typeof entry === 'string' && localStorage.getItem(`submitted-${selectedKey}`))
       );
+      console.log('Setting showCompletedEntry to:', hasSubmittedEntry);
       setShowCompletedEntry(hasSubmittedEntry);
     } else {
       console.log('No entry found, setting empty text');
       setText('');
+      console.log('Setting showCompletedEntry to false');
       setShowCompletedEntry(false);
     }
   }, [selectedKey, journalEntries]);
@@ -873,7 +876,10 @@ export default function JournalPage() {
           )}
         </div>
         {/* Show completed journal entry */}
-        {showCompletedEntry && text ? (
+        {(() => {
+          console.log('Rendering completed entry check - showCompletedEntry:', showCompletedEntry, 'text:', text, 'text length:', text?.length);
+          return showCompletedEntry && text;
+        })() ? (
           <div style={{ 
             color: 'var(--Text-Text-Dark, #1C1C1C)',
             fontFamily: 'Albert Sans',
@@ -939,6 +945,8 @@ export default function JournalPage() {
             (typeof journalEntries[selectedKey] === 'object' && (journalEntries[selectedKey].ai_reply || journalEntries[selectedKey].submitted)) ||
             (typeof journalEntries[selectedKey] === 'string' && localStorage.getItem(`submitted-${selectedKey}`))
           );
+          
+          console.log('hasSubmittedEntry check - selectedKey:', selectedKey, 'journalEntries[selectedKey]:', journalEntries[selectedKey], 'hasSubmittedEntry:', hasSubmittedEntry);
           
           if (hasSubmittedEntry) {
             return null; // Don't show prompt for completed entries
