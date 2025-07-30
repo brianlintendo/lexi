@@ -18,7 +18,7 @@ import tickIcon from '../assets/icons/tick.svg';
 import { useUser } from '../hooks/useAuth';
 import BottomNav from '../components/BottomNav';
 import { getChatCompletion, debugEnvironment } from '../openai';
-import { insertEntry, fetchEntries, upsertEntry, deleteEntry } from '../api/journal';
+import { insertEntry, fetchEntries, upsertEntry, deleteEntry, updateEntrySubmitted } from '../api/journal';
 
 // Lucide placeholders for missing icons
 const JournalIcon = (props) => (
@@ -223,10 +223,23 @@ export default function JournalPage() {
         localStorage.setItem(`submitted-${todayKey}`, 'true');
         setShowCompletedEntry(true);
         
+        // Update Supabase to mark as submitted
+        if (user?.id) {
+          updateEntrySubmitted(user.id, todayKey, true)
+            .then(({ error }) => {
+              if (error) {
+                console.error('Error updating submission status in Supabase:', error);
+              }
+            })
+            .catch(err => {
+              console.error('Error updating submission status in Supabase:', err);
+            });
+        }
+        
         // Save to Supabase if user is logged in
         if (user?.id && journalEntry.trim()) {
           const todayKey = getDateKey(new Date());
-          insertEntry(user.id, journalEntry, null, todayKey) // Use insert for now until constraint is set up
+          insertEntry(user.id, journalEntry, null, todayKey, true) // Mark as submitted
             .then(({ error }) => {
               if (error) {
                 console.error('Error saving chat entry to Supabase:', error);
@@ -257,7 +270,7 @@ export default function JournalPage() {
               submitted: true
             }
           }));
-          insertEntry(user.id, text, null, entryDate)
+          insertEntry(user.id, text, null, entryDate, true) // Mark as submitted
           .then(({ error }) => {
             if (error) {
               console.error('Error saving manual entry to Supabase:', error);
@@ -305,6 +318,13 @@ export default function JournalPage() {
                 if (parsed[selectedKey]) {
                   const entryText = typeof parsed[selectedKey] === 'object' ? parsed[selectedKey].text : parsed[selectedKey];
                   setText(entryText);
+                  
+                  // Check if entry has been submitted
+                  const hasSubmittedEntry = !!parsed[selectedKey] && (
+                    (typeof parsed[selectedKey] === 'object' && (parsed[selectedKey].ai_reply || parsed[selectedKey].submitted)) ||
+                    (typeof parsed[selectedKey] === 'string' && localStorage.getItem(`submitted-${selectedKey}`))
+                  );
+                  setShowCompletedEntry(hasSubmittedEntry);
                 }
               } catch {}
             }
@@ -316,7 +336,7 @@ export default function JournalPage() {
               entries[dateKey] = {
                 text: entry.entry_text,
                 ai_reply: entry.ai_reply,
-                submitted: !!entry.ai_reply // If there's an AI reply, it was submitted
+                submitted: entry.submitted || !!entry.ai_reply // Use submitted field or fallback to ai_reply check
               };
             });
             setJournalEntries(entries);
@@ -324,6 +344,13 @@ export default function JournalPage() {
             if (entries[selectedKey]) {
               const entryText = typeof entries[selectedKey] === 'object' ? entries[selectedKey].text : entries[selectedKey];
               setText(entryText);
+              
+              // Check if entry has been submitted
+              const hasSubmittedEntry = !!entries[selectedKey] && (
+                (typeof entries[selectedKey] === 'object' && (entries[selectedKey].ai_reply || entries[selectedKey].submitted)) ||
+                (typeof entries[selectedKey] === 'string' && localStorage.getItem(`submitted-${selectedKey}`))
+              );
+              setShowCompletedEntry(hasSubmittedEntry);
             }
             // Also save to localStorage as cache
             localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
@@ -341,6 +368,13 @@ export default function JournalPage() {
               if (parsed[selectedKey]) {
                 const entryText = typeof parsed[selectedKey] === 'object' ? parsed[selectedKey].text : parsed[selectedKey];
                 setText(entryText);
+                
+                // Check if entry has been submitted
+                const hasSubmittedEntry = !!parsed[selectedKey] && (
+                  (typeof parsed[selectedKey] === 'object' && (parsed[selectedKey].ai_reply || parsed[selectedKey].submitted)) ||
+                  (typeof parsed[selectedKey] === 'string' && localStorage.getItem(`submitted-${selectedKey}`))
+                );
+                setShowCompletedEntry(hasSubmittedEntry);
               }
             } catch {}
           }
@@ -358,6 +392,13 @@ export default function JournalPage() {
           if (parsed[selectedKey]) {
             const entryText = typeof parsed[selectedKey] === 'object' ? parsed[selectedKey].text : parsed[selectedKey];
             setText(entryText);
+            
+            // Check if entry has been submitted
+            const hasSubmittedEntry = !!parsed[selectedKey] && (
+              (typeof parsed[selectedKey] === 'object' && (parsed[selectedKey].ai_reply || parsed[selectedKey].submitted)) ||
+              (typeof parsed[selectedKey] === 'string' && localStorage.getItem(`submitted-${selectedKey}`))
+            );
+            setShowCompletedEntry(hasSubmittedEntry);
           }
         } catch {}
       }
@@ -375,8 +416,16 @@ export default function JournalPage() {
     if (entry) {
       const entryText = typeof entry === 'object' ? entry.text : entry;
       setText(entryText);
+      
+      // Check if entry has been submitted
+      const hasSubmittedEntry = !!entry && (
+        (typeof entry === 'object' && (entry.ai_reply || entry.submitted)) ||
+        (typeof entry === 'string' && localStorage.getItem(`submitted-${selectedKey}`))
+      );
+      setShowCompletedEntry(hasSubmittedEntry);
     } else {
       setText('');
+      setShowCompletedEntry(false);
     }
   }, [selectedKey, journalEntries]);
 
@@ -438,11 +487,20 @@ export default function JournalPage() {
     setSelectedDate(date);
     const key = getDateKey(date);
     const entry = journalEntries[key];
+    
+    // Check if entry has been submitted
+    const hasSubmittedEntry = !!entry && (
+      (typeof entry === 'object' && (entry.ai_reply || entry.submitted)) ||
+      (typeof entry === 'string' && localStorage.getItem(`submitted-${key}`))
+    );
+    
     if (entry) {
       const entryText = typeof entry === 'object' ? entry.text : entry;
       setText(entryText);
+      setShowCompletedEntry(hasSubmittedEntry);
     } else {
       setText('');
+      setShowCompletedEntry(false);
     }
   };
 
@@ -699,17 +757,31 @@ export default function JournalPage() {
         )}
           {showCompletedEntry && text && (
             <div style={{ position: 'relative' }}>
-              <img 
-                src={moreIcon} 
-                alt="More options" 
-                style={{ 
-                  width: '20px', 
-                  height: '20px', 
-                  cursor: 'pointer',
-                  opacity: 0.7
-                }}
-                onClick={() => setShowDialog(!showDialog)}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'flex-end' }}>
+                <div style={{
+                  background: '#e8f5e8',
+                  color: '#2e7d32',
+                  padding: '4px 12px',
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  COMPLETE
+                </div>
+                <img 
+                  src={moreIcon} 
+                  alt="More options" 
+                  style={{ 
+                    width: '20px', 
+                    height: '20px', 
+                    cursor: 'pointer',
+                    opacity: 0.7
+                  }}
+                  onClick={() => setShowDialog(!showDialog)}
+                />
+              </div>
               
               {/* Dialog box */}
               {showDialog && (
@@ -826,22 +898,43 @@ export default function JournalPage() {
               >End</button>
             </div>
           </>
-        ) : (
-          <>
-            <div className="prompt-bubble">
-              {aiPromptLoading
-                ? 'Lexi is thinking of a prompt...'
-                : aiPrompt || PROMPT_BUBBLES[lastLanguage] || PROMPT_BUBBLES['en']}
-            </div>
-            <textarea
-              className="journal-textarea"
-              placeholder={PLACEHOLDERS[language] || PLACEHOLDERS['en']}
-              value={text}
-              onChange={handleTextChange}
-              style={{ height: 'auto', minHeight: '40px' }}
-            />
-          </>
-        )}
+        ) : (() => {
+          const selectedKey = getDateKey(selectedDate);
+          const hasSubmittedEntry = !!journalEntries[selectedKey] && (
+            (typeof journalEntries[selectedKey] === 'object' && (journalEntries[selectedKey].ai_reply || journalEntries[selectedKey].submitted)) ||
+            (typeof journalEntries[selectedKey] === 'string' && localStorage.getItem(`submitted-${selectedKey}`))
+          );
+          
+          if (hasSubmittedEntry) {
+            return (
+              <div style={{
+                textAlign: 'center',
+                padding: '40px 20px',
+                color: '#666',
+                fontSize: '16px'
+              }}>
+                This entry has been completed. You can edit it using the menu above.
+              </div>
+            );
+          } else {
+            return (
+              <>
+                <div className="prompt-bubble">
+                  {aiPromptLoading
+                    ? 'Lexi is thinking of a prompt...'
+                    : aiPrompt || PROMPT_BUBBLES[lastLanguage] || PROMPT_BUBBLES['en']}
+                </div>
+                <textarea
+                  className="journal-textarea"
+                  placeholder={PLACEHOLDERS[language] || PLACEHOLDERS['en']}
+                  value={text}
+                  onChange={handleTextChange}
+                  style={{ height: 'auto', minHeight: '40px' }}
+                />
+              </>
+            );
+          }
+        })()}
       </div>
 
       {/* Bottom Actions: only show if no chat in progress */}
