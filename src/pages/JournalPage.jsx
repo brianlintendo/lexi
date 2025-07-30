@@ -495,14 +495,22 @@ export default function JournalPage() {
         (typeof entry === 'string' && localStorage.getItem(`submitted-${selectedKey}`))
       );
       console.log('Setting showCompletedEntry to:', hasSubmittedEntry);
-      setShowCompletedEntry(hasSubmittedEntry);
+      
+      // Only set showCompletedEntry if we're not currently editing
+      if (!isEditing) {
+        setShowCompletedEntry(hasSubmittedEntry);
+      }
     } else {
       console.log('No entry found, setting empty text');
       setText('');
       console.log('Setting showCompletedEntry to false');
-      setShowCompletedEntry(false);
+      
+      // Only set showCompletedEntry if we're not currently editing
+      if (!isEditing) {
+        setShowCompletedEntry(false);
+      }
     }
-  }, [selectedKey, journalEntries]);
+  }, [selectedKey, journalEntries, isEditing]);
 
   // Sync localStorage with Supabase when user logs in
   useEffect(() => {
@@ -639,6 +647,7 @@ export default function JournalPage() {
   const [showCompletedEntry, setShowCompletedEntry] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Calculate word count for validation
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
@@ -655,6 +664,7 @@ export default function JournalPage() {
       const entryText = typeof entry === 'object' ? entry.text : entry;
       console.log('handleEdit - setting text to:', entryText);
       setText(entryText);
+      setIsEditing(true); // Mark that we're in edit mode
     } else {
       console.log('handleEdit - no entry found for key:', selectedKey);
     }
@@ -665,6 +675,7 @@ export default function JournalPage() {
 
   const handleSend = () => {
     if (hasMinimumWords) {
+      setIsEditing(false); // Reset editing state
       navigate('/chat', { state: { journalEntry: text } });
     } else {
       setShowTooltip(true);
