@@ -1015,24 +1015,14 @@ export default function JournalPage() {
               fontSize: '14px',
               fontWeight: '500',
               zIndex: 1000,
-              border: '1px solid transparent',
-              backgroundClip: 'padding-box',
+              border: '2px solid',
+              borderImage: 'linear-gradient(180deg, #FDB3B3 0%, #72648C 48.08%, #6F7BD8 100%) 1',
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
               textAlign: 'center',
               whiteSpace: 'nowrap',
               width: 'fit-content',
               minWidth: 'max-content'
             }}>
-              <div style={{
-                position: 'absolute',
-                top: '-1px',
-                left: '-1px',
-                right: '-1px',
-                bottom: '-1px',
-                background: 'linear-gradient(180deg, #FDB3B3 0%, #72648C 48.08%, #6F7BD8 100%)',
-                borderRadius: '8px',
-                zIndex: -1
-              }}></div>
               Type more than 10 words for your first entry
             </div>
           )}
