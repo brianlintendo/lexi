@@ -171,6 +171,7 @@ export default function JournalPage() {
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Conversation preview logic
   const [chatPreview, setChatPreview] = useState(null);
@@ -648,7 +649,6 @@ export default function JournalPage() {
   const [showCompletedEntry, setShowCompletedEntry] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
 
   // Calculate word count for validation
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
