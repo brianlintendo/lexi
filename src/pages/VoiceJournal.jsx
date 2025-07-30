@@ -476,7 +476,6 @@ export default function VoiceJournal() {
             fontFamily: 'Albert Sans, sans-serif',
             boxShadow: '0 1px 4px rgba(136,84,255,0.04)',
             border: '1px solid #ece6ff',
-            width: '100%',
           }}>
             {aiReplies[aiReplies.length-1].user}
           </div>
@@ -493,7 +492,6 @@ export default function VoiceJournal() {
             boxShadow: '0 2px 8px rgba(136,84,255,0.06)',
             padding: '20px 20px 16px 20px',
             fontFamily: 'Albert Sans, sans-serif',
-            width: '100%',
           }}>
             {aiSections.corrected && (
               <div style={{ marginBottom: 12 }}>
