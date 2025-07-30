@@ -75,29 +75,29 @@ export default function VoiceJournal() {
   // Get language-specific initial prompts
   const getInitialPrompt = (lang) => {
     const prompts = {
-      en: "Hello! Ready to write in English? 😊 What did you do today?",
-      es: "¡Hola! ¿Listo(a) para escribir en español? 😊 ¿Qué hiciste hoy?",
-      fr: "Bonjour ! Prêt(e) à écrire en français ? 😊 Qu'as-tu fait aujourd'hui ?",
-      zh: "你好！准备好用中文写作了吗？😊 你今天做了什么？",
-      pt: "Olá! Pronto(a) para escrever em português? 😊 O que você fez hoje?",
-      it: "Ciao! Pronto(a) a scrivere in italiano? 😊 Cosa hai fatto oggi?",
-      de: "Hallo! Bereit, auf Deutsch zu schreiben? 😊 Was hast du heute gemacht?",
-      ja: "こんにちは！日本語で書く準備はできましたか？😊 今日は何をしましたか？",
-      ko: "안녕하세요! 한국어로 글쓰기 준비가 되셨나요? 😊 오늘 무엇을 하셨나요?",
-      ru: "Привет! Готов писать на русском? 😊 Что ты делал сегодня?",
-      ar: "مرحباً! مستعد للكتابة بالعربية؟😊 ماذا فعلت اليوم؟",
-      hi: "नमस्ते! हिंदी में लिखने के लिए तैयार हैं? 😊 आज आपने क्या किया?",
-      nl: "Hallo! Klaar om in het Nederlands te schrijven? 😊 Wat heb je vandaag gedaan?",
-      sv: "Hej! Redo att skriva på svenska? 😊 Vad gjorde du idag?",
-      no: "Hei! Klar til å skrive på norsk? 😊 Hva gjorde du i dag?",
-      da: "Hej! Klar til at skrive på dansk? 😊 Hvad gjorde du i dag?",
-      fi: "Hei! Valmis kirjoittamaan suomeksi? 😊 Mitä sinä teit tänään?",
-      pl: "Cześć! Gotowy do pisania po polsku? 😊 Co robiłeś dzisiaj?",
-      tr: "Merhaba! Türkçe yazmaya hazır mısın? 😊 Bugün ne yaptın?",
-      he: "שלום! מוכן לכתוב בעברית? 😊 מה עשית היום?",
-      th: "สวัสดี! พร้อมเขียนภาษาไทยแล้วหรือยัง? 😊 วันนี้คุณทำอะไรบ้าง?",
-      vi: "Xin chào! Sẵn sàng viết bằng tiếng Việt chưa? 😊 Hôm nay bạn đã làm gì?",
-      id: "Halo! Siap menulis dalam bahasa Indonesia? 😊 Apa yang kamu lakukan hari ini?",
+      en: "Hey there! 👋 Ready to spill the beans about your day? What's the scoop? 😄",
+      es: "¡Hola! 👋 ¿Listo(a) para contarme qué tal te fue hoy? ¡Vamos a ver qué pasó! 😄",
+      fr: "Salut ! 👋 Prêt(e) à me raconter ta journée ? Allez, dis-moi tout ! 😄",
+      zh: "嘿！👋 准备好分享今天的故事了吗？有什么新鲜事？😄",
+      pt: "Oi! 👋 Pronto(a) para me contar como foi seu dia? Vamos lá, fala aí! 😄",
+      it: "Ciao! 👋 Pronto(a) a raccontarmi com'è andata oggi? Dai, dimmi tutto! 😄",
+      de: "Hey! 👋 Bereit, mir von deinem Tag zu erzählen? Los, erzähl mal! 😄",
+      ja: "やあ！👋 今日の出来事を教えてくれる？何かあった？😄",
+      ko: "안녕! 👋 오늘 하루 어땠는지 이야기해줄 준비됐어? 뭐 재미있는 일 있었어? 😄",
+      ru: "Привет! 👋 Готов рассказать, как прошёл твой день? Ну что, как дела? 😄",
+      ar: "أهلاً! 👋 مستعد تحكيلي عن يومك؟ شو صار معك اليوم؟😄",
+      hi: "अरे! 👋 आज का दिन कैसा रहा, बताने के लिए तैयार हो? क्या हुआ आज? 😄",
+      nl: "Hé! 👋 Klaar om me te vertellen hoe je dag was? Kom op, vertel eens! 😄",
+      sv: "Hej! 👋 Redo att berätta om din dag? Kom igen, berätta! 😄",
+      no: "Hei! 👋 Klar til å fortelle meg om dagen din? Kom igjen, fortell! 😄",
+      da: "Hej! 👋 Klar til at fortælle mig om din dag? Kom nu, fortæl! 😄",
+      fi: "Hei! 👋 Valmis kertomaan miten päiväsi meni? Kerro nyt! 😄",
+      pl: "Cześć! 👋 Gotowy opowiedzieć mi o swoim dniu? No dalej, gadaj! 😄",
+      tr: "Selam! 👋 Bugünün nasıl geçtiğini anlatmaya hazır mısın? Hadi bakalım! 😄",
+      he: "היי! 👋 מוכן לספר לי איך היה היום שלך? בוא, תספר! 😄",
+      th: "เฮ้! 👋 พร้อมเล่าเรื่องวันนี้แล้วหรือยัง? มีอะไรสนุกๆ บ้าง? 😄",
+      vi: "Chào! 👋 Sẵn sàng kể cho tôi nghe về ngày hôm nay chưa? Nào, kể đi! 😄",
+      id: "Hai! 👋 Siap ceritain gimana hari kamu? Ayo, cerita dong! 😄",
       ms: "Hai! Sedia menulis dalam bahasa Melayu? 😊 Apa yang anda lakukan hari ini?"
     };
     return prompts[lang] || prompts['en'];
@@ -183,15 +183,27 @@ export default function VoiceJournal() {
     return match ? match[1].trim() : text;
   }
 
-  // Play TTS prompt (only speak Follow-up section)
+  // Play TTS prompt (only speak follow-up conversation topic, exclude English translation)
   const playPrompt = async (text = promptText) => {
     if (isMuted) return;
     setIsSpeaking(true);
     setIndicatorText('Lexi is speaking…');
     const { followup } = parseAISections(text);
     try {
-      // Only speak the follow-up section
-      const toSpeak = followup || text;
+      // Only speak the follow-up conversation topic, excluding English translation
+      let toSpeak = followup || text;
+      
+      // Remove English translation part (usually in parentheses or after "Translation:")
+      if (toSpeak) {
+        // Remove text in parentheses (English translations)
+        toSpeak = toSpeak.replace(/\([^)]*\)/g, '').trim();
+        // Remove "Translation:" and everything after it
+        toSpeak = toSpeak.replace(/Translation:.*$/i, '').trim();
+        // Remove any remaining English text patterns
+        toSpeak = toSpeak.replace(/\(English:.*?\)/gi, '').trim();
+        toSpeak = toSpeak.replace(/English:.*$/i, '').trim();
+      }
+      
       const audioUrl = await openaiTTS(toSpeak, 'nova'); // Use a female voice
       if (audioRef.current) {
         audioRef.current.pause();
@@ -212,7 +224,7 @@ export default function VoiceJournal() {
   // Start listening for user voice
   const startListening = async () => {
     setIsListening(true);
-    setIndicatorText('Listening…');
+    setIndicatorText('Recording... Click "Submit Recording" when done');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -264,12 +276,7 @@ export default function VoiceJournal() {
         }
       };
       mediaRecorderRef.current.start();
-      // Auto-stop after 8 seconds (reduced from 10 for faster processing)
-      setTimeout(() => {
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-          mediaRecorderRef.current.stop();
-        }
-      }, 8000);
+      // Recording will continue until user clicks submit - no auto-stop
     } catch (err) {
       setIsListening(false);
       setIndicatorText('Microphone error. Tap to try again.');
@@ -402,7 +409,7 @@ export default function VoiceJournal() {
 
   // Next prompt stub
   const nextPrompt = () => {
-    setPromptText('Super ! Peux-tu me raconter ta journée en quelques phrases ?');
+    setPromptText('Awesome! Can you tell me about your day in a few sentences? 😊');
   };
 
   // Calculate word count
@@ -535,6 +542,42 @@ export default function VoiceJournal() {
           >
             {indicatorText}
           </div>
+          
+          {/* Submit button - appears when recording */}
+          {isListening && (
+            <button
+              onClick={() => {
+                if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+                  mediaRecorderRef.current.stop();
+                }
+              }}
+              style={{
+                background: '#7A54FF',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 12,
+                padding: '12px 24px',
+                fontSize: 16,
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(122,84,255,0.3)',
+                transition: 'all 0.2s ease',
+                marginTop: 16
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = '#6A44EF';
+                e.target.style.transform = 'translateY(-1px)';
+                e.target.style.boxShadow = '0 6px 16px rgba(122,84,255,0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = '#7A54FF';
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 12px rgba(122,84,255,0.3)';
+              }}
+            >
+              Submit Recording
+            </button>
+          )}
         </div>
         {/* Keyboard mode */}
         {showKeyboard && (
@@ -655,29 +698,37 @@ export default function VoiceJournal() {
 // Helper to generate system prompt based on proficiency (same as in ChatPage)
 function getProficiencyPrompt(proficiency, targetLanguage) {
   let levelInstructions = '';
+  let playfulnessLevel = '';
+  
   switch (proficiency) {
     case 'A1':
     case 'A1 (Beginner)':
       levelInstructions = `The user is a BEGINNER (A1). Use only simple, basic vocabulary and grammar. Do NOT suggest advanced words or idioms in the Vocabulary Enhancer. Keep follow-up questions very simple and short.`;
+      playfulnessLevel = `Keep your playfulness very simple and clear. Use basic emojis like 😊 and simple expressions. Be encouraging but use straightforward language that a beginner can easily understand.`;
       break;
     case 'A2':
     case 'A2 (Elementary)':
       levelInstructions = `The user is ELEMENTARY (A2). Use simple vocabulary and grammar. Avoid advanced or nuanced words. Follow-up questions should be straightforward.`;
+      playfulnessLevel = `Be playful but keep it simple. Use basic emojis like 😊 😄 and simple friendly expressions. Avoid complex slang or idioms, but you can be warm and encouraging.`;
       break;
     case 'B1':
     case 'B1 (Intermediate)':
       levelInstructions = `The user is INTERMEDIATE (B1). You can introduce some intermediate vocabulary and slightly more complex follow-ups, but avoid very advanced or idiomatic language.`;
+      playfulnessLevel = `You can be quite playful! Use emojis like 😊 😄 🎉 and some casual expressions. You can introduce simple slang and friendly banter, but keep it appropriate for intermediate level.`;
       break;
     case 'B2':
     case 'B2 (Upper-Intermediate)':
       levelInstructions = `The user is UPPER-INTERMEDIATE (B2). You can use more complex vocabulary and idioms, but avoid the most advanced or rare words. Follow-ups can be more nuanced.`;
+      playfulnessLevel = `Be very playful and engaging! Use lots of emojis 😊 😄 🎉 🚀 and casual language. You can use more sophisticated humor, slang, and friendly banter. Feel free to be creative and witty!`;
       break;
     case 'C1':
     case 'C1 (Advanced)':
       levelInstructions = `The user is ADVANCED (C1). Use advanced, nuanced vocabulary and idioms in the Vocabulary Enhancer. Follow-up questions can be sophisticated and detailed.`;
+      playfulnessLevel = `Go all out with playfulness! Use emojis freely 😊 😄 🎉 🚀 💫 and sophisticated humor. You can use advanced slang, cultural references, and complex banter. Be creative, witty, and genuinely entertaining!`;
       break;
     default:
       levelInstructions = '';
+      playfulnessLevel = `Be moderately playful with simple emojis 😊 and friendly language.`;
   }
   
   // Get language name for better context
@@ -691,13 +742,14 @@ function getProficiencyPrompt(proficiency, targetLanguage) {
   
   const targetLanguageName = languageNames[targetLanguage] || targetLanguage;
   
-  return `You are Lexi, a friendly, lightly humorous language tutor and conversation partner. The user's target language is ${targetLanguageName} (${targetLanguage}). You MUST ALWAYS respond in ${targetLanguageName}. ${levelInstructions}\n\n` +
+  return `You are Lexi, a super friendly and playful language buddy! 🎉 You're like that awesome friend who's always excited to chat and makes learning fun. The user's target language is ${targetLanguageName} (${targetLanguage}). You MUST ALWAYS respond in ${targetLanguageName}. ${levelInstructions}\n\n` +
+    `${playfulnessLevel}\n\n` +
     `When the user submits a sentence or short text in any language, you MUST reply in this exact format and ALWAYS in ${targetLanguageName}:\n\n` +
     `**Corrected Entry:**  \n<ONLY include this section if there are actual corrections to make. If the user's text is perfect, skip this entire section. If corrections are needed, show the full corrected sentence with corrections bolded using <b>...</b> HTML tags>\n\n` +
     `**Key Corrections:**  \n<ONLY include this section if there are actual corrections to make. If the user's text is perfect, skip this entire section. If corrections are needed:\n- For each correction, show the entire corrected sentence for context, with the correction bolded using <b>...</b> HTML tags (not **...**). Briefly explain the change after the sentence.\n- Example: Je <b>suis allé</b> au marché. ("suis allé" is the correct past tense for "I went")\n- Do this for each important correction.>\n\n` +
     `**Phrase to Remember:**  \n<ONLY include this section if there are actual corrections to make. If the user's text is perfect, skip this entire section. If corrections are needed:\n- Provide 3-5 short phrases or collocations from the correction, each as a bullet, in quotes, with a simple translation if helpful. If fewer than 3 are relevant, just include those.>\n\n` +
-    `**Vocabulary Enhancer:**  \n- Suggest 1-3 advanced, topic-relevant vocabulary words, idioms, or phrases (with translation or explanation) that would elevate the user's writing, based on the theme of their entry. Each should be a bullet, and always keep it relevant to the topic. For example, if the entry is about a picnic, suggest a phrase or idiom about picnics or food; if about a job, suggest something relevant to work or career. Example: Instead of 'la nourriture était très bien', suggest 'un festin pour les papilles' (a feast for the taste buds); instead of 'j'ai faim', suggest 'avoir un petit creux' (to feel a bit peckish).\n\n` +
-    `**Follow-up:**  \n<A natural follow-up question in ${targetLanguageName}, related to what the user wrote. Make it lighthearted, playful, and banter-y, encouraging a friendly and fun conversation.>\n\n` +
+    `**Vocabulary Enhancer:**  \n- Suggest 1-3 awesome, topic-relevant vocabulary words, idioms, or phrases (with translation or explanation) that would make the user's writing pop! 🌟 Each should be a bullet, and always keep it relevant to the topic. For example, if the entry is about a picnic, suggest a phrase or idiom about picnics or food; if about a job, suggest something relevant to work or career. Example: Instead of 'la nourriture était très bien', suggest 'un festin pour les papilles' (a feast for the taste buds); instead of 'j'ai faim', suggest 'avoir un petit creux' (to feel a bit peckish).\n\n` +
+    `**Follow-up:**  \n<A follow-up question in ${targetLanguageName}, related to what the user wrote. Adjust your playfulness based on the user's level - beginners get simple, clear questions with basic emojis; advanced users get sophisticated banter and complex humor. Always be encouraging and make them want to keep talking!>\n\n` +
     `IMPORTANT: Only include the "Corrected Entry", "Key Corrections", and "Phrase to Remember" sections if there are actual corrections to make. If the user's text is perfect, skip these three sections entirely and go straight to "Vocabulary Enhancer".\n\n` +
-    `CRITICAL: You MUST respond in ${targetLanguageName} only. Do not respond in any other language unless specifically asked. You are a gentle, female-voiced language tutor who speaks like a calm, caring friend: use light, tasteful humor rather than over-the-top jokes, offer meditative, thoughtful encouragement, and gently nudge the learner with kind corrections and supportive follow-up questions.`;
+    `CRITICAL: You MUST respond in ${targetLanguageName} only. Do not respond in any other language unless specifically asked. You are Lexi - the most enthusiastic and supportive language learning buddy ever! 🚀 Adjust your enthusiasm and playfulness to match the user's proficiency level while always being encouraging and making learning feel like fun, not homework!`;
 } 
