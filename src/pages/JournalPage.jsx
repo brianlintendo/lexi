@@ -325,6 +325,33 @@ export default function JournalPage() {
           } else {
         // No chat messages, save current manual text entry
         if (user?.id && text.trim()) {
+          // Check if the text is actually a user entry and not a prompt
+          const isPromptText = text.includes('¿Qué aventura inesperada') || 
+                              text.includes('What unexpected adventure') ||
+                              text.includes('¡Hola! ¿Listo') ||
+                              text.includes('Hello! Ready to write') ||
+                              text.includes('Bonjour ! Prêt') ||
+                              text.includes('你好！准备好') ||
+                              text.includes('Olá! Pronto') ||
+                              text.includes('Ciao! Pronto') ||
+                              text.includes('Hallo! Bereit') ||
+                              text.includes('こんにちは！') ||
+                              text.includes('안녕하세요!') ||
+                              text.includes('Привет! Готов') ||
+                              text.includes('مرحباً! مستعد') ||
+                              text.includes('नमस्ते! हिंदी') ||
+                              text.includes('Hallo! Klaar') ||
+                              text.includes('Hej! Redo') ||
+                              text.includes('Hei! Klar');
+          
+          if (isPromptText) {
+            console.log('Detected prompt text, not saving as journal entry');
+            console.log('Prompt text detected:', text);
+            // Don't save prompt text as a journal entry
+            setShowCompletedEntry(false);
+            return;
+          }
+          
           const entryDate = selectedKey;
           console.log('Saving manual entry for date:', entryDate, 'Text:', text);
           // Mark as submitted in localStorage
@@ -506,7 +533,34 @@ export default function JournalPage() {
       const entryText = typeof entry === 'object' ? entry.text : entry;
       console.log('- Setting text to:', entryText);
       console.log('- Text length:', entryText.length);
-      setText(entryText);
+      
+      // Check if the entry text is actually a prompt and not a real journal entry
+      const isPromptText = entryText.includes('¿Qué aventura inesperada') || 
+                          entryText.includes('What unexpected adventure') ||
+                          entryText.includes('¡Hola! ¿Listo') ||
+                          entryText.includes('Hello! Ready to write') ||
+                          entryText.includes('Bonjour ! Prêt') ||
+                          entryText.includes('你好！准备好') ||
+                          entryText.includes('Olá! Pronto') ||
+                          entryText.includes('Ciao! Pronto') ||
+                          entryText.includes('Hallo! Bereit') ||
+                          entryText.includes('こんにちは！') ||
+                          entryText.includes('안녕하세요!') ||
+                          entryText.includes('Привет! Готов') ||
+                          entryText.includes('مرحباً! مستعد') ||
+                          entryText.includes('नमस्ते! हिंदी') ||
+                          entryText.includes('Hallo! Klaar') ||
+                          entryText.includes('Hej! Redo') ||
+                          entryText.includes('Hei! Klar');
+      
+      if (isPromptText) {
+        console.log('- Detected prompt text in entry, not setting as display text');
+        console.log('- Prompt text detected:', entryText);
+        // Don't set prompt text as display text
+        setText('');
+      } else {
+        setText(entryText);
+      }
       
       // Check if entry has been submitted
       const hasSubmittedEntry = !!entry && (
@@ -1022,7 +1076,7 @@ export default function JournalPage() {
         {/* Show completed journal entry */}
         {(() => {
           console.log('Rendering completed entry check - showCompletedEntry:', showCompletedEntry, 'text:', text, 'text length:', text?.length);
-          return showCompletedEntry && text;
+          return showCompletedEntry && text && text.trim(); // Only show if there's actual content
         })() ? (
           <div style={{ 
             color: 'var(--Text-Text-Dark, #1C1C1C)',
