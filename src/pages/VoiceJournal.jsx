@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { openaiTTS, transcribeWithWhisper, getChatCompletion } from '../openai';
+import { openaiTTS, transcribeWithWhisper, getChatCompletion, debugEnvironment } from '../openai';
 import ChatHeader from '../components/ChatHeader';
+import ChatBubble from '../components/ChatBubble';
 import micIcon from '../assets/icons/mic.svg';
 import micMuteIcon from '../assets/icons/microphone-mute.svg';
 import keyboardIcon from '../assets/icons/keyboard.svg';
@@ -271,6 +272,11 @@ export default function VoiceJournal() {
     }
   };
 
+  // Debug environment variables on component mount
+  useEffect(() => {
+    debugEnvironment();
+  }, []);
+
   // On mount or prompt change, play prompt
   // useEffect(() => {
   //   if (!showKeyboard && aiReplies.length === 0) {
@@ -489,57 +495,22 @@ export default function VoiceJournal() {
             </div>
           )}
         </div>
-        {/* User's response (last entry) */}
-        {aiReplies.length > 0 && (
-          <div style={{
-            width: '100%',
-            // maxWidth: 320,
-            margin: '0 auto 16px auto',
-            background: '#f7f7fa',
-            borderRadius: 10,
-            padding: '18px 20px',
-            fontSize: 18,
-            color: '#222',
-            fontFamily: 'Albert Sans, sans-serif',
-            boxShadow: '0 1px 4px rgba(136,84,255,0.04)',
-            border: '1px solid #ece6ff',
-            width: '100%',
-          }}>
-            {aiReplies[aiReplies.length-1].user}
-          </div>
-        )}
-        {/* Correction box UI */}
-        {(aiSections.corrected || aiSections.corrections) && (
-          <div style={{
-            width: '100%',
-            // maxWidth: 320,
-            margin: '0 auto 24px auto',
-            background: '#fff',
-            border: '2px solid #e0e0f7',
-            borderRadius: 14,
-            boxShadow: '0 2px 8px rgba(136,84,255,0.06)',
-            padding: '20px 20px 16px 20px',
-            fontFamily: 'Albert Sans, sans-serif',
-            width: '100%',
-          }}>
-            {aiSections.corrected && (
-              <div style={{ marginBottom: 12 }}>
-                <span style={{ fontWeight: 700, color: '#7A54FF' }}>Corrected Entry:</span><br />
-                <span dangerouslySetInnerHTML={{ __html: aiSections.corrected.replace(/&lt;/g, '<').replace(/&gt;/g, '>') }} />
-              </div>
-            )}
-            {aiSections.corrections && (
-              <div>
-                <span style={{ fontWeight: 700, color: '#7A54FF' }}>Key Corrections:</span>
-                <ul style={{ margin: '8px 0 0 20px', padding: 0, color: '#444', fontWeight: 400, fontSize: 15 }}>
-                  {aiSections.corrections.split(/\n|\r/).filter(Boolean).map((line, i) => (
-                    <li key={i} dangerouslySetInnerHTML={{ __html: line.replace(/&lt;/g, '<').replace(/&gt;/g, '>') }} />
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
+        {/* Chat messages using ChatBubble component */}
+        <div style={{ width: '100%', marginBottom: 16 }}>
+          {aiReplies.length > 0 && (
+            <ChatBubble 
+              sender="user" 
+              text={aiReplies[aiReplies.length-1].user} 
+            />
+          )}
+          {aiReplies.length > 0 && (
+            <ChatBubble 
+              sender="ai" 
+              text={aiReplies[aiReplies.length-1].ai}
+              userText={aiReplies[aiReplies.length-1].user}
+            />
+          )}
+        </div>
         {/* Indicator and dots */}
         <div style={{ marginTop: 32, textAlign: 'center', width: '100%' }}>
           <div 
@@ -569,7 +540,6 @@ export default function VoiceJournal() {
               onChange={e => setEntry(e.target.value)}
               placeholder="Type your journal entry…"
               style={{
-                width: '100%',
                 minHeight: 80,
                 border: '1.5px solid #b9aaff',
                 borderRadius: 12,
@@ -583,7 +553,6 @@ export default function VoiceJournal() {
             <button
               onClick={handleSend}
               style={{
-                width: '100%',
                 background: 'linear-gradient(353deg, #5F46B4 26.75%, #7860CC 79.09%)',
                 color: '#fff',
                 border: 'none',
