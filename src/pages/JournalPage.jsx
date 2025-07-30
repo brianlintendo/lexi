@@ -230,8 +230,16 @@ export default function JournalPage() {
         console.log('Corrected entries found:', correctedEntries);
         
         // Join all corrected entries with newlines
-        const journalEntry = correctedEntries.join('\n\n');
+        let journalEntry = correctedEntries.join('\n\n');
         console.log('Final journal entry:', journalEntry);
+        
+        // If no corrected entries found, fall back to user's original text
+        if (!journalEntry.trim()) {
+          // Extract user's original text from messages
+          const userMessages = messages.filter(msg => msg.sender === 'user').map(msg => msg.text);
+          journalEntry = userMessages.join('\n\n');
+          console.log('No corrected entries found, using user text:', journalEntry);
+        }
         
         // Save as journal entry for the selected date
         console.log('Saving entry for date:', selectedKey, 'Entry:', journalEntry);
