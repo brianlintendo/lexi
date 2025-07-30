@@ -142,7 +142,7 @@ function getDynamicPromptWithCEFR(selectedDate, journalEntries, language, profic
 }
 
 export default function JournalPage() {
-  const today = new Date();
+  const [today] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(today);
   const [journalEntries, setJournalEntries] = useState({}); // { 'YYYY-MM-DD': 'entry text' }
   const [search, setSearch] = useState('');
@@ -299,6 +299,7 @@ export default function JournalPage() {
   const weekDates = getWeekDates(selectedDate);
   const selectedKey = getDateKey(selectedDate);
   const todayKey = getDateKey(today);
+  console.log('Calendar state - selectedDate:', selectedDate, 'selectedKey:', selectedKey, 'todayKey:', todayKey, 'weekDates:', weekDates.map(d => getDateKey(d)));
 
   // Load journal entries from Supabase on mount and when user changes
   useEffect(() => {
