@@ -1035,7 +1035,7 @@ export default function JournalPage() {
             onSpeak={() => navigate('/voice-journal')}
             onSend={handleSend}
             onImage={() => {}}
-            sendDisabled={!hasMinimumWords}
+            sendDisabled={false}
           />
         </div>
       )}
