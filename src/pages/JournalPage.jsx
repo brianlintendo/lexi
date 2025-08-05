@@ -1100,7 +1100,7 @@ export default function JournalPage() {
         ) : chatPreview ? (
           <>
             <div style={{ width: '100%', margin: '24px 0 0 0' }}>
-              <ChatBubble sender="ai" text={chatPreview.ai.text} />
+              <ChatBubble sender="ai" text={chatPreview.ai.text} userText={chatPreview.user.text} />
               <ChatBubble sender="user" text={chatPreview.user.text} />
             </div>
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16, marginTop: 32, marginBottom: 120 }}>

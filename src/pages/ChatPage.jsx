@@ -333,9 +333,20 @@ export default function ChatPage() {
         >
           New Conversation
         </button>
-        {messages.map((msg, idx) => (
-          <ChatBubble key={idx} sender={msg.sender} text={msg.text} />
-        ))}
+        {messages.map((msg, idx) => {
+          // Find the user's original text for AI responses
+          let userText = null;
+          if (msg.sender === 'ai') {
+            // Look for the previous user message
+            for (let i = idx - 1; i >= 0; i--) {
+              if (messages[i].sender === 'user') {
+                userText = messages[i].text;
+                break;
+              }
+            }
+          }
+          return <ChatBubble key={idx} sender={msg.sender} text={msg.text} userText={userText} />;
+        })}
         {loading && <ChatBubble sender="ai" loading />}
         {!loading && (
           <textarea

@@ -5,17 +5,63 @@ import { useUser } from '../hooks/useAuth';
 import { addSavedPhrase, checkPhraseExists } from '../api/savedPhrases';
 
 function highlightCorrections(userText, aiText) {
-  // Simple word diff: highlight words in aiText that are not in userText
+  // Enhanced highlighting: highlight phrases that are corrections
   if (!userText || !aiText) return aiText;
-  const userWords = userText.split(/\s+/);
-  const aiWords = aiText.split(/\s+/);
-  // Mark as incorrect if not in userWords at the same position
-  return aiWords.map((word, i) => {
-    if (userWords[i] && userWords[i] !== word) {
-      return <b key={i}><mark style={{background:'#ffe066',padding:'0 2px',borderRadius:3}}>{word}</mark></b>;
+  
+  // Decode HTML entities first
+  const decodedAiText = aiText.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  const decodedUserText = userText.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  
+  // Clean and normalize text for comparison
+  const cleanAiText = decodedAiText.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const cleanUserText = decodedUserText.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  
+  // Split into words for comparison
+  const aiWords = decodedAiText.split(/\s+/);
+  const userWords = decodedUserText.split(/\s+/);
+  
+  // Create a set of user words for faster lookup
+  const userWordSet = new Set(cleanUserText.split(/\s+/));
+  
+  // Highlight words that are corrections or additions
+  const highlightedWords = aiWords.map((word, index) => {
+    // Clean the word for comparison
+    const cleanWord = word.toLowerCase().replace(/[^\w]/g, '');
+    
+    // Check if this word is a correction or addition
+    const isCorrection = !userWordSet.has(cleanWord) || 
+                        (userWords[index] && userWords[index].toLowerCase() !== word.toLowerCase());
+    
+    if (isCorrection) {
+      return (
+        <mark 
+          key={index}
+          style={{
+            background: '#E4DDFF',
+            padding: '0 2px',
+            borderRadius: '3px',
+            fontWeight: '600',
+            color: '#7A54FF',
+            textDecoration: 'underline',
+            textDecorationStyle: 'wavy',
+            textDecorationColor: '#7A54FF'
+          }}
+          title="This word was corrected or added"
+        >
+          {word}
+        </mark>
+      );
     }
-    return word + (i < aiWords.length - 1 ? ' ' : '');
+    return word;
   });
+  
+  // Reconstruct the text with proper spacing
+  return highlightedWords.map((word, index) => (
+    <React.Fragment key={index}>
+      {word}
+      {index < highlightedWords.length - 1 ? ' ' : ''}
+    </React.Fragment>
+  ));
 }
 
 export default function ChatBubble({ sender, text, loading, userText }) {
@@ -252,7 +298,11 @@ export default function ChatBubble({ sender, text, loading, userText }) {
                   {corrected && (
                     <div style={{marginBottom:10}}>
                       <span style={{fontWeight:700}}>Corrected Entry:</span><br/>
-                      <span dangerouslySetInnerHTML={{__html: corrected.replace(/&lt;/g, '<').replace(/&gt;/g, '>')}} />
+                      <span>
+                        {userText ? highlightCorrections(userText, corrected) : (
+                          <span dangerouslySetInnerHTML={{__html: corrected.replace(/&lt;/g, '<').replace(/&gt;/g, '>')}} />
+                        )}
+                      </span>
                     </div>
                   )}
                   {corrections && (
