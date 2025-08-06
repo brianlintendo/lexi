@@ -898,6 +898,14 @@ textarea {
   position: relative;
 }
 
+.calendar-bg {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f9f7fd 0%, #ece6fa 100%);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
 .journal-header {
   display: flex;
   justify-content: space-between;

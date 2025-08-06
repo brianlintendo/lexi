@@ -6,7 +6,7 @@ import imageIcon from '../assets/icons/image.svg';
 import savedIcon from '../assets/icons/saved.svg';
 import accountIcon from '../assets/icons/account.svg';
 import moreIcon from '../assets/icons/more.svg';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ChatBubble from '../components/ChatBubble';
 import BottomSheet from '../components/BottomSheet';
 import ChatActionsRow from '../components/ChatActionsRow';
@@ -165,6 +165,7 @@ export default function JournalPage() {
   const [search, setSearch] = useState('');
   const [text, setText] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
   const { journalInput, setJournalInput, language, setLanguage } = useJournal();
   const { profile } = useProfile();
   const [showLangSheet, setShowLangSheet] = useState(false);
@@ -195,6 +196,16 @@ export default function JournalPage() {
       setChatPreview(null);
     }
   }, []);
+
+  // Handle calendar navigation
+  useEffect(() => {
+    if (location.state && location.state.selectedDate) {
+      const selectedDate = new Date(location.state.selectedDate);
+      setSelectedDate(selectedDate);
+      // Clear the state so it doesn't trigger again
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const handleResume = () => navigate('/chat');
   const handleEnd = () => {
@@ -860,7 +871,7 @@ export default function JournalPage() {
   }, [language, lastLanguage, aiPrompt, aiPromptLoading]);
 
   return (
-    <div className="journal-bg">
+    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: '#fafaff', display: 'flex', flexDirection: 'column' }}>
       {/* Top Section */}
       <div className="journal-header-flex">
         <div className="weekdays-row-centered" style={{ display: 'flex', justifyContent: 'flex-start', gap: 20 }}>
@@ -935,7 +946,7 @@ export default function JournalPage() {
       </div>
 
       {/* Main Content */}
-      <div className="journal-main">
+      <div style={{ flex: 1, padding: '24px 16px 0 16px' }}>
         {loading && (
           <div style={{
             display: 'flex',
@@ -1185,7 +1196,7 @@ export default function JournalPage() {
 
       {/* Bottom Actions: only show if no chat in progress */}
       {!chatPreview && (
-        <div style={{ marginBottom: 120, position: 'relative' }}>
+        <div style={{ padding: '0 16px 120px 16px', position: 'relative' }}>
           {/* Tooltip for insufficient word count */}
           {showTooltip && (
             <div style={{

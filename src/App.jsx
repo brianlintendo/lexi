@@ -4,6 +4,7 @@ import NameEntryPage from './pages/NameEntryPage';
 import LanguageSelectPage from './pages/LanguageSelectPage';
 import ProficiencyPage from './pages/ProficiencyPage';
 import JournalPage from './pages/JournalPage';
+import CalendarPage from './pages/CalendarPage';
 import SettingsPage from './pages/SettingsPage';
 import SavedPage from './pages/SavedPage';
 import ChatPage from './pages/ChatPage';
@@ -62,6 +63,7 @@ function AppRoutes() {
       <Route path="/onboard/motivation" element={<OnboardMotivationPage />} />
       <Route path="/onboard/proficiency" element={<ProficiencyPage />} />
       <Route path="/journal" element={<JournalPage />} />
+      <Route path="/calendar" element={<CalendarPage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/saved" element={<SavedPage />} />
       <Route path="/chat" element={<ChatPage />} />

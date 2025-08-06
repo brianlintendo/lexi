@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import bookSavedIcon from '../assets/icons/book-saved.svg';
 import savedIcon from '../assets/icons/saved.svg';
+import calendarIcon from '../assets/icons/calendar.svg';
 import accountIcon from '../assets/icons/account.svg';
 
 export default function BottomNav() {
@@ -18,14 +19,14 @@ export default function BottomNav() {
       transform: 'translateX(-50%)',
       bottom: 24,
       zIndex: 99,
-      maxWidth: 420,
+      maxWidth: 'calc(100vw - 32px)',
+      width: '100%',
       margin: '0 auto',
       display: 'flex',
       justifyContent: 'space-around',
       alignItems: 'center',
       height: 80,
       padding: '0 32px',
-      minWidth: 320,
     }}>
       <button onClick={() => navigate('/journal')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
         <img src={bookSavedIcon} alt="Journal" style={{ width: 28, height: 28, opacity: location.pathname === '/journal' ? 1 : 0.6 }} />
@@ -47,6 +48,17 @@ export default function BottomNav() {
           fontFamily: 'Albert Sans, sans-serif'
         }}>
           Phrases
+        </span>
+      </button>
+      <button onClick={() => navigate('/calendar')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+        <img src={calendarIcon} alt="Calendar" style={{ width: 28, height: 28, opacity: location.pathname === '/calendar' ? 1 : 0.6 }} />
+        <span style={{ 
+          fontSize: 12, 
+          fontWeight: location.pathname === '/calendar' ? 600 : 400,
+          color: location.pathname === '/calendar' ? '#181818' : '#6B6B6B',
+          fontFamily: 'Albert Sans, sans-serif'
+        }}>
+          Calendar
         </span>
       </button>
       <button onClick={() => navigate('/settings')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
