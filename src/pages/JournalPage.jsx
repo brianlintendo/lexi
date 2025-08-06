@@ -871,7 +871,7 @@ export default function JournalPage() {
   }, [language, lastLanguage, aiPrompt, aiPromptLoading]);
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: '#fafaff', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: 'linear-gradient(180deg, #FAF4F4 0%, #E9E3F5 48.08%, #F5F1FD 100%)', display: 'flex', flexDirection: 'column' }}>
       {/* Top Section */}
       <div className="journal-header-flex">
         <div className="weekdays-row-centered" style={{ display: 'flex', justifyContent: 'flex-start', gap: 20 }}>

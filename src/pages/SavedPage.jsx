@@ -7,6 +7,7 @@ import { fetchSavedPhrases, removeSavedPhrase } from '../api/savedPhrases';
 import { useUser } from '../hooks/useAuth';
 import BottomNav from '../components/BottomNav';
 import { openaiTTS } from '../openai';
+import Tooltip from '../components/Tooltip';
 
 function detectLang(text) {
   // Simple heuristic: if contains accented chars or common French words, return 'fr', else 'en'
@@ -94,10 +95,13 @@ export default function SavedPage() {
   return (
     <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: '#fafaff', display: 'flex', flexDirection: 'column' }}>
       <TopNavHeader title="Saved Phrases" onBack={() => navigate(-1)} />
+      
+      {/* Sign-in message */}
+      {!user?.id && <Tooltip message="Please sign in to save your own phrases." />}
+      
       <div style={{ flex: 1, padding: '24px 18px 0 18px' }}>
         {!user?.id ? (
           <div>
-            <div style={{ color: '#888', fontStyle: 'italic', marginBottom: 24, textAlign: 'center' }}>Please sign in to save your own phrases.</div>
             <div style={{ color: '#666', fontSize: 14, marginBottom: 16, textAlign: 'center' }}>Here's an example of how saved phrases look:</div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               <li style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 8px 0 rgba(122,84,255,0.08)', marginBottom: 18, padding: '18px 18px 14px 18px', display: 'flex', flexDirection: 'column', gap: 4, position: 'relative' }}>

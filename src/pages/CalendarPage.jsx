@@ -8,6 +8,7 @@ import MonthPicker from '../components/MonthPicker';
 import MetricsGrid from '../components/MetricsGrid';
 import BottomNav from '../components/BottomNav';
 import TopNavHeader from '../components/TopNavHeader';
+import Tooltip from '../components/Tooltip';
 
 export default function CalendarPage() {
   const navigate = useNavigate();
@@ -219,7 +220,7 @@ export default function CalendarPage() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: '#fafaff', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: 'linear-gradient(180deg, #FAF4F4 0%, #E9E3F5 48.08%, #F5F1FD 100%)', display: 'flex', flexDirection: 'column' }}>
         <TopNavHeader title="Calendar" onBack={() => navigate(-1)} />
         <div style={{
           flex: 1,
@@ -237,23 +238,11 @@ export default function CalendarPage() {
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: '#fafaff', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: 'linear-gradient(180deg, #FAF4F4 0%, #E9E3F5 48.08%, #F5F1FD 100%)', display: 'flex', flexDirection: 'column' }}>
       <TopNavHeader title="Calendar" onBack={() => navigate(-1)} />
       
       {/* Sign-in message */}
-      {!user?.id && (
-        <div style={{
-          background: '#f5f5f5',
-          padding: '12px 16px',
-          textAlign: 'center',
-          fontSize: '14px',
-          color: '#6B6B6B',
-          fontFamily: 'Albert Sans, sans-serif',
-          fontWeight: '500'
-        }}>
-          Please sign in to access saved info.
-        </div>
-      )}
+      {!user?.id && <Tooltip message="Please sign in to access saved info." />}
       
       {/* Main Panel */}
       <div style={{
