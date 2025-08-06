@@ -94,6 +94,8 @@ export default function ChatPage() {
 
   // Track previous language for confirmation
   const prevLanguageRef = useRef(language);
+  // Track if we're currently processing an AI response
+  const isProcessingRef = useRef(false);
 
   // Focus input on mount
   useEffect(() => {
@@ -113,10 +115,18 @@ export default function ChatPage() {
 
   // Auto-reply if last message is from user and not yet answered by AI
   useEffect(() => {
-    if (messages.length > 0 && !loading) {
+    if (messages.length > 0 && !loading && !isProcessingRef.current) {
       const last = messages[messages.length - 1];
       // If last message is from user, always trigger AI response
       if (last.sender === 'user') {
+        // Check if there's already an AI response being processed for this message
+        const isProcessing = messages.some(msg => msg.sender === 'ai' && msg.timestamp > last.timestamp);
+        if (isProcessing) {
+          console.log('AI response already being processed, skipping');
+          return;
+        }
+        
+        isProcessingRef.current = true;
         (async () => {
           setLoading(true);
           try {
@@ -137,7 +147,16 @@ export default function ChatPage() {
                 'th': 'Thai', 'vi': 'Vietnamese', 'id': 'Indonesian', 'ms': 'Malay'
               };
               const targetLanguageName = languageNames[language] || language;
-              systemPrompt = `You are Lexi, a friendly language tutor. The user's target language is ${targetLanguageName} (${language}). You MUST ALWAYS respond in ${targetLanguageName}. When the user submits text, respond in this format: **Corrected Entry:** (if needed), **Key Corrections:** (if needed), **Phrase to Remember:** (if needed), **Vocabulary Enhancer:** (always), **Follow-up:** (in ${targetLanguageName}), **Follow-up Translation:** (English). CRITICAL: Respond in ${targetLanguageName} only.`;
+              systemPrompt = `You are Lexi, a friendly language tutor. The user's target language is ${targetLanguageName} (${language}). You MUST ALWAYS respond in ${targetLanguageName}. When the user submits text, respond in this format: **Corrected Entry:** (if needed), **Key Corrections:** (if needed), **Phrase to Remember:** (if needed), **Vocabulary Enhancer:** (always), **Follow-up:** (in ${targetLanguageName}), **Follow-up Translation:** (English). 
+
+**Vocabulary Enhancer:** Suggest 1-3 NEW vocabulary words, idioms, or phrases that the user is NOT currently using in their text. These should be advanced, topic-relevant words that can improve the structure, flow, and vocabulary richness of their writing. For each word or phrase, provide:
+- The word or phrase in the target language
+- The English translation (always in English)
+- A brief description or example of how it is used, in English.
+
+IMPORTANT: Only suggest words that are NOT already present in the user's text. Choose words that would naturally fit into their context and enhance their expression.
+
+CRITICAL: Respond in ${targetLanguageName} only.`;
               console.log('Using default system prompt with language:', language);
             }
             const aiText = await getChatCompletion(last.text, systemPrompt);
@@ -158,12 +177,13 @@ export default function ChatPage() {
             setMessages(prev => [...prev, { sender: 'ai', text: 'Sorry, there was an error contacting Lexi. Please try again.', timestamp: new Date() }]);
           } finally {
             setLoading(false);
+            isProcessingRef.current = false;
           }
         })();
       }
     }
     // eslint-disable-next-line
-  }, [messages, profile]);
+  }, [messages]);
 
   useEffect(() => {
     localStorage.setItem('lexi-chat-messages', JSON.stringify(messages));
@@ -491,7 +511,7 @@ function getProficiencyPrompt(proficiency, targetLanguage) {
     `**Corrected Entry:**  \n<ONLY include this section if there are actual corrections to make. If the user's text is perfect, skip this entire section. If corrections are needed, show the full corrected sentence with corrections bolded using <b>...</b> HTML tags. ALSO, highlight the words that were incorrect in the user's original sentence using <b>...</b> tags, and briefly explain the difference between the incorrect and corrected words.>\n\n` +
     `**Key Corrections:**  \n<ONLY include this section if there are actual corrections to make. If the user's text is perfect, skip this entire section. If corrections are needed:\n- For each correction, show the entire corrected sentence for context, with the correction bolded using <b>...</b> HTML tags (not **...**). Briefly explain the change after the sentence.\n- Example: Je <b>suis allé</b> au marché. ("suis allé" is the correct past tense for "I went")\n- Do this for each important correction.>\n\n` +
     `**Phrase to Remember:**  \n<ONLY include this section if there are actual corrections to make. If the user's text is perfect, skip this entire section. If corrections are needed:\n- Provide 3-5 short phrases or collocations from the correction, each as a bullet, in quotes, with a simple translation if helpful. If fewer than 3 are relevant, just include those.>\n\n` +
-    `**Vocabulary Enhancer:**  \n- Suggest 1-3 advanced, topic-relevant vocabulary words, idioms, or phrases (with translation and a description in English for each). Each should be a bullet, and always keep it relevant to the topic. For each word or phrase, provide:\n  - The word or phrase in the target language\n  - The English translation\n  - A brief description or example of how it is used, in English.\nFor example, if the entry is about a picnic, suggest a phrase or idiom about picnics or food; if about a job, suggest something relevant to work or career. Example: Instead of 'la nourriture était très bien', suggest 'un festin pour les papilles' (a feast for the taste buds) - "A French idiom meaning the food was delicious and enjoyable."; instead of 'j'ai faim', suggest 'avoir un petit creux' (to feel a bit peckish) - "A casual way to say you're a little hungry."\n\n` +
+    `**Vocabulary Enhancer:**  \n- Suggest 1-3 NEW vocabulary words, idioms, or phrases that the user is NOT currently using in their text. These should be advanced, topic-relevant words that can improve the structure, flow, and vocabulary richness of their writing. For each word or phrase, provide:\n  - The word or phrase in the target language\n  - The English translation (always in English)\n  - A brief description or example of how it is used, in English.\nIMPORTANT: Only suggest words that are NOT already present in the user's text. Choose words that would naturally fit into their context and enhance their expression. For example, if the entry is about a picnic, suggest a phrase or idiom about picnics or food; if about a job, suggest something relevant to work or career. Example: Instead of 'la nourriture était très bien', suggest 'un festin pour les papilles' (a feast for the taste buds) - "A French idiom meaning the food was delicious and enjoyable."; instead of 'j'ai faim', suggest 'avoir un petit creux' (to feel a bit peckish) - "A casual way to say you're a little hungry."\n\n` +
     `**Follow-up:**  \n<A natural follow-up question in ${targetLanguageName}, related to what the user wrote. Make it lighthearted, playful, and banter-y, encouraging a friendly and fun conversation.>\n\n` +
     `**Follow-up Translation:**  \n<The English translation of the follow-up question above>\n\n` +
     `IMPORTANT: Only include the "Corrected Entry", "Key Corrections", and "Phrase to Remember" sections if there are actual corrections to make. If the user's text is perfect, skip these three sections entirely and go straight to "Vocabulary Enhancer".\n\n` +

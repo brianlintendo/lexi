@@ -525,6 +525,12 @@ export default function JournalPage() {
     console.log('- Available journalEntries keys:', Object.keys(journalEntries));
     console.log('- Looking for entry with key:', selectedKey);
     
+    // Don't interfere with text loading if we're currently editing
+    if (isEditing) {
+      console.log('- Currently editing, skipping text loading effect');
+      return;
+    }
+    
     const entry = journalEntries[selectedKey];
     console.log('- Found entry:', entry);
     console.log('- Entry type:', typeof entry);
@@ -570,25 +576,13 @@ export default function JournalPage() {
       console.log('- hasSubmittedEntry:', hasSubmittedEntry);
       console.log('- Entry submitted status:', typeof entry === 'object' ? entry.submitted : 'N/A');
       
-      // Only set showCompletedEntry if we're not currently editing
-      if (!isEditing) {
-        console.log('- Setting showCompletedEntry to:', hasSubmittedEntry, '(not editing)');
-        setShowCompletedEntry(hasSubmittedEntry);
-      } else {
-        console.log('- NOT setting showCompletedEntry (currently editing)');
-      }
+      console.log('- Setting showCompletedEntry to:', hasSubmittedEntry);
+      setShowCompletedEntry(hasSubmittedEntry);
     } else {
       console.log('- No entry found, setting empty text');
       setText('');
       console.log('- Setting showCompletedEntry to false');
-      
-      // Only set showCompletedEntry if we're not currently editing
-      if (!isEditing) {
-        console.log('- Setting showCompletedEntry to false (not editing)');
-        setShowCompletedEntry(false);
-      } else {
-        console.log('- NOT setting showCompletedEntry to false (currently editing)');
-      }
+      setShowCompletedEntry(false);
     }
     console.log('=== TEXT LOADING EFFECT COMPLETED ===');
   }, [selectedKey, journalEntries, isEditing]);
@@ -760,12 +754,14 @@ export default function JournalPage() {
       console.log('- entryText length:', entryText.length);
       console.log('- entryText type:', typeof entryText);
       
+      // Set editing state first to prevent text loading effect interference
+      setIsEditing(true);
+      // Then set the text
       setText(entryText);
-      setIsEditing(true); // Mark that we're in edit mode
       
       console.log('=== STATE UPDATES SCHEDULED ===');
+      console.log('- setIsEditing(true) called first');
       console.log('- setText called with:', entryText);
-      console.log('- setIsEditing(true) called');
     } else {
       console.log('=== NO ENTRY FOUND ===');
       console.log('- No entry found for key:', selectedKey);
@@ -1144,29 +1140,45 @@ export default function JournalPage() {
             (typeof journalEntries[selectedKey] === 'string' && localStorage.getItem(`submitted-${selectedKey}`))
           );
           
-          console.log('hasSubmittedEntry check - selectedKey:', selectedKey, 'journalEntries[selectedKey]:', journalEntries[selectedKey], 'hasSubmittedEntry:', hasSubmittedEntry);
+          console.log('hasSubmittedEntry check - selectedKey:', selectedKey, 'journalEntries[selectedKey]:', journalEntries[selectedKey], 'hasSubmittedEntry:', hasSubmittedEntry, 'isEditing:', isEditing);
           
-          if (hasSubmittedEntry) {
-            return null; // Don't show prompt for completed entries
-          } else {
+          // Show textarea if we're editing OR if there's no submitted entry
+          if (isEditing || !hasSubmittedEntry) {
             return (
-              <>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                height: '100%',
+                gap: '16px'
+              }}>
                 <div className="prompt-bubble">
                   {aiPromptLoading
                     ? 'Lexi is thinking of a prompt...'
                     : aiPrompt || PROMPT_BUBBLES[lastLanguage] || PROMPT_BUBBLES['en']}
                 </div>
-                <div style={{ position: 'relative' }}>
+                <div style={{ 
+                  position: 'relative',
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}>
                   <textarea
                     className="journal-textarea"
                     placeholder={PLACEHOLDERS[language] || PLACEHOLDERS['en']}
                     value={text}
                     onChange={handleTextChange}
-                    style={{ height: 'auto', minHeight: '40px' }}
+                    style={{ 
+                      flex: 1,
+                      height: '100%',
+                      minHeight: '200px',
+                      resize: 'none'
+                    }}
                   />
                 </div>
-              </>
+              </div>
             );
+          } else {
+            return null; // Don't show prompt for completed entries when not editing
           }
         })()}
       </div>

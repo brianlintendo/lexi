@@ -971,7 +971,6 @@ textarea {
   color: #7A54FF;
   border-radius: 12px;
   padding: 18px 16px;
-  margin-bottom: 24px;
   font-size: 17px;
   font-weight: 500;
 }
@@ -982,14 +981,10 @@ textarea {
   background: transparent;
   font-size: 18px;
   color: #757575;
-  margin-top: 8px;
   resize: none;
-  min-height: 40px;
-  max-height: none;
-  height: auto;
-  overflow: hidden;
   font-family: 'Albert Sans', sans-serif;
   line-height: 1.5;
+  overflow-y: auto;
 }
 
 .journal-textarea:focus {

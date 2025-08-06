@@ -41,10 +41,7 @@ function highlightCorrections(userText, aiText) {
             padding: '0 2px',
             borderRadius: '3px',
             fontWeight: '600',
-            color: '#7A54FF',
-            textDecoration: 'underline',
-            textDecorationStyle: 'wavy',
-            textDecorationColor: '#7A54FF'
+            color: '#7A54FF'
           }}
           title="This word was corrected or added"
         >
@@ -62,6 +59,11 @@ function highlightCorrections(userText, aiText) {
       {index < highlightedWords.length - 1 ? ' ' : ''}
     </React.Fragment>
   ));
+}
+
+function convertMarkdownToBold(text) {
+  // Convert **text** to <b>text</b> for bold formatting
+  return text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
 }
 
 export default function ChatBubble({ sender, text, loading, userText }) {
@@ -362,7 +364,7 @@ export default function ChatBubble({ sender, text, loading, userText }) {
                                 setShowPhraseSheet(true);
                               }}
                             >
-                              {v.trim()}
+                              <span dangerouslySetInnerHTML={{ __html: convertMarkdownToBold(v.trim()) }} />
                             </mark>
                           </li>
                         ))}
