@@ -23,6 +23,14 @@ export default function CalendarPage() {
   });
   const [loading, setLoading] = useState(true);
 
+  // Helper function to get local date key (timezone-safe)
+  const getLocalDateKey = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Fetch entries and calculate metrics
   useEffect(() => {
     console.log('🔄 CalendarPage: useEffect triggered, user?.id:', user?.id);
@@ -55,7 +63,7 @@ export default function CalendarPage() {
           console.log('🔍 CalendarPage: Processing entries...');
           
           entries?.forEach((entry, index) => {
-            const dateKey = entry.entry_date || new Date(entry.created_at).toISOString().slice(0, 10);
+            const dateKey = entry.entry_date || getLocalDateKey(new Date(entry.created_at));
             const isActiveEntry = entry.submitted || entry.ai_reply;
             
             console.log(`📅 Entry ${index + 1}:`, {
@@ -155,8 +163,8 @@ export default function CalendarPage() {
     
     // Calculate current streak (consecutive days from today backwards)
     let currentStreak = 0;
-    const today = new Date().toISOString().slice(0, 10);
     const todayDate = new Date();
+    const today = getLocalDateKey(todayDate);
     
     console.log(`🏃‍♂️ Calculating current streak from today: ${today}`);
     
@@ -169,9 +177,9 @@ export default function CalendarPage() {
       let checkDate = new Date(todayDate);
       checkDate.setDate(checkDate.getDate() - 1);
       
-      while (sortedDates.includes(checkDate.toISOString().slice(0, 10))) {
+      while (sortedDates.includes(getLocalDateKey(checkDate))) {
         currentStreak++;
-        console.log(`🏃‍♂️ ${checkDate.toISOString().slice(0, 10)} has entry! Current streak: ${currentStreak}`);
+        console.log(`🏃‍♂️ ${getLocalDateKey(checkDate)} has entry! Current streak: ${currentStreak}`);
         checkDate.setDate(checkDate.getDate() - 1);
       }
     } else {
@@ -180,9 +188,9 @@ export default function CalendarPage() {
       let checkDate = new Date(todayDate);
       checkDate.setDate(checkDate.getDate() - 1);
       
-      while (sortedDates.includes(checkDate.toISOString().slice(0, 10))) {
+      while (sortedDates.includes(getLocalDateKey(checkDate))) {
         currentStreak++;
-        console.log(`🏃‍♂️ ${checkDate.toISOString().slice(0, 10)} has entry! Current streak: ${currentStreak}`);
+        console.log(`🏃‍♂️ ${getLocalDateKey(checkDate)} has entry! Current streak: ${currentStreak}`);
         checkDate.setDate(checkDate.getDate() - 1);
       }
     }
@@ -213,7 +221,7 @@ export default function CalendarPage() {
     // Navigate to JournalPage with the selected date
     navigate('/journal', { 
       state: { 
-        selectedDate: date.toISOString().slice(0, 10) 
+        selectedDate: getLocalDateKey(date) 
       } 
     });
   };

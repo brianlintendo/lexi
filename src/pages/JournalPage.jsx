@@ -53,7 +53,11 @@ function formatDateHeading(date) {
 }
 
 function getDateKey(date) {
-  return date.toISOString().slice(0, 10); // YYYY-MM-DD
+  // Use local date instead of UTC to avoid timezone issues
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`; // YYYY-MM-DD
 }
 
 const STORAGE_KEY = 'lexi-journal-entries';
@@ -810,7 +814,7 @@ export default function JournalPage() {
   };
 
   const handleDelete = () => {
-    const todayKey = getDateKey(new Date());
+    const todayKey = getDateKey(today);
     setJournalEntries(prev => {
       const updated = { ...prev };
       delete updated[todayKey];
